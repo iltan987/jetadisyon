@@ -8,12 +8,11 @@ node_modules
 # Turbo
 .turbo
 
-# Build Outputs
-.next/
-dist/
-
 # Test Coverage
 coverage/
+
+# Playwright MCP
+.playwright-mcp/
 
 # IDE - VSCode
 .vscode/*
@@ -21,4 +20,3 @@ coverage/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-skills-lock.json
