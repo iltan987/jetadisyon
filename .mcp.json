@@ -3,6 +3,14 @@
     "shadcn": {
       "command": "npx",
       "args": ["shadcn@latest", "mcp"]
+    },
+    "supabase": {
+      "type": "http",
+      "url": "http://localhost:8000/mcp"
+    },
+    "zod": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.inkeep.com/zod/mcp"]
     }
   }
 }

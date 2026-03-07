@@ -1,2 +1,2 @@
 // Shared API types, DTOs, and entities
-// Export your shared types here as the project grows
+export type { Database, Json } from './database.types';
