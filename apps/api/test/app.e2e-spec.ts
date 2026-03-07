@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -10,7 +11,22 @@ describe('AppController (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideModule(ConfigModule)
+      .useModule(
+        ConfigModule.forRoot({
+          ignoreEnvFile: true,
+          load: [
+            () => ({
+              SUPABASE_URL: 'http://localhost:8000',
+              SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+              PORT: 3000,
+            }),
+          ],
+          isGlobal: true,
+        }),
+      )
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
