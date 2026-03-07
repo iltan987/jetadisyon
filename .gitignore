@@ -1,0 +1,23 @@
+# Dependencies
+node_modules
+
+# Env files (except .env.example)
+.env*
+!.env.example
+
+# Turbo
+.turbo
+
+# Build Outputs
+.next/
+dist/
+
+# Test Coverage
+coverage/
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
