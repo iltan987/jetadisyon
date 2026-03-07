@@ -12,6 +12,9 @@
     },
     "lint": {},
     "test": {},
-    "test:e2e": {}
+    "test:e2e": {},
+    "clean": {
+      "cache": false
+    }
   }
 }

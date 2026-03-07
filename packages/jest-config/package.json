@@ -33,6 +33,7 @@
     "typescript": "^5"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rm -rf dist"
   }
 }
