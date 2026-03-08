@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
   // This is NOT a security boundary — real auth happens in (admin)/layout.tsx.
   const hasAuthCookie = request.cookies
     .getAll()
-    .some((c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token'));
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
 
   if (pathname.startsWith('/admin') && !hasAuthCookie) {
     const loginUrl = request.nextUrl.clone();

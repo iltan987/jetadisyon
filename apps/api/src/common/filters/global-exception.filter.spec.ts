@@ -3,6 +3,7 @@ import {
   HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { GlobalExceptionFilter } from './global-exception.filter';
 
 function createMockArgumentsHost(mockResponse: Record<string, jest.Mock>) {
@@ -16,13 +17,19 @@ function createMockArgumentsHost(mockResponse: Record<string, jest.Mock>) {
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
+  let mockLogger: Partial<PinoLogger>;
 
   const mockJson = jest.fn();
   const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
   const mockHost = createMockArgumentsHost({ status: mockStatus });
 
   beforeEach(() => {
-    filter = new GlobalExceptionFilter();
+    mockLogger = {
+      setContext: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    };
+    filter = new GlobalExceptionFilter(mockLogger as PinoLogger);
     jest.clearAllMocks();
   });
 
@@ -69,5 +76,28 @@ describe('GlobalExceptionFilter', () => {
         message: 'An unexpected error occurred',
       },
     });
+  });
+
+  it('should log 5xx errors via logger.error', () => {
+    filter.catch(new Error('Something broke'), mockHost);
+
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 500, code: 'SYSTEM.INTERNAL_ERROR' }),
+      'An unexpected error occurred',
+    );
+  });
+
+  it('should log 4xx errors via logger.warn', () => {
+    const exception = new UnauthorizedException({
+      code: 'AUTH.TOKEN_INVALID',
+      message: 'Invalid token',
+    });
+
+    filter.catch(exception, mockHost);
+
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 401, code: 'AUTH.TOKEN_INVALID' }),
+      'Invalid token',
+    );
   });
 });
