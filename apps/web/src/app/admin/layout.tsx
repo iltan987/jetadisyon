@@ -18,7 +18,16 @@ export default async function AdminLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || user.app_metadata?.user_role !== 'admin') {
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Role is injected into JWT by custom_access_token_hook, not stored in raw_app_meta_data.
+  // Use getClaims() to read the actual JWT claims.
+  const { data } = await supabase.auth.getClaims();
+  const userRole = data?.claims?.app_metadata?.user_role;
+
+  if (userRole !== 'admin') {
     redirect('/login');
   }
 
