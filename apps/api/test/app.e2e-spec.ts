@@ -4,6 +4,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { SupabaseAuthGuard } from './../src/common/guards/supabase-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -20,21 +22,27 @@ describe('AppController (e2e)', () => {
             () => ({
               SUPABASE_URL: 'http://localhost:8000',
               SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+              SUPABASE_JWT_SECRET: 'test-jwt-secret',
               PORT: 3000,
             }),
           ],
           isGlobal: true,
         }),
       )
+      .overrideGuard(SupabaseAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api/v1');
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/api/v1 (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/v1')
       .expect(200)
       .expect('Hello World!');
   });
