@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const envSchema = z.object({
   SUPABASE_URL: z.url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_JWT_SECRET: z.string().min(1),
   PORT: z.coerce.number().default(3000),
 });
 
