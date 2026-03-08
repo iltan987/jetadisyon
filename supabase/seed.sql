@@ -4,8 +4,7 @@
 -- This seed creates the admin user in auth.users and assigns the admin role.
 -- For self-hosted Supabase, this runs after migrations via `supabase db reset`.
 --
--- NOTE: The password hash below is for 'Admin123!' using bcrypt.
--- In production, create admin users via the Supabase dashboard or admin API.
+-- NOTE: In production, create admin users via the Supabase dashboard or admin API.
 
 INSERT INTO auth.users (
   id,
@@ -22,7 +21,7 @@ INSERT INTO auth.users (
   confirmation_token,
   recovery_token
 ) VALUES (
-  '00000000-0000-0000-0000-000000000001',
+  gen_random_uuid(),
   '00000000-0000-0000-0000-000000000000',
   'admin@jetadisyon.com',
   crypt('Admin123!', gen_salt('bf')),
@@ -35,9 +34,11 @@ INSERT INTO auth.users (
   now(),
   '',
   ''
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (email) WHERE (is_sso_user = false) DO NOTHING;
 
--- Assign admin role
+-- Assign admin role (looks up actual user ID by email)
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('00000000-0000-0000-0000-000000000001', 'admin')
-ON CONFLICT DO NOTHING;
+SELECT id, 'admin'::public.app_role
+FROM auth.users
+WHERE email = 'admin@jetadisyon.com'
+ON CONFLICT ON CONSTRAINT user_roles_user_id_role_key DO NOTHING;
