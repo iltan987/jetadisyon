@@ -5,6 +5,7 @@ export const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_JWT_SECRET: z.string().min(1),
   PORT: z.coerce.number().default(3000),
+  CORS_ORIGIN: z.string().default('http://localhost:3001'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

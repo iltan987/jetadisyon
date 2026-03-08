@@ -2,15 +2,17 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
-  Logger,
   NestInterceptor,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { Observable, tap } from 'rxjs';
 import { AuthenticatedRequest } from '../types/request.types';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(LoggingInterceptor.name);
+  constructor(private readonly logger: PinoLogger) {
+    this.logger.setContext(LoggingInterceptor.name);
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -23,7 +25,7 @@ export class LoggingInterceptor implements NestInterceptor {
         next: () => {
           const duration = Date.now() - start;
           const response = context.switchToHttp().getResponse();
-          this.logger.log(
+          this.logger.info(
             { method, url, status: response.statusCode, duration, actor },
             `${method} ${url}`,
           );

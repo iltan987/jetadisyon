@@ -26,6 +26,7 @@ import { AuthModule } from './auth/auth.module';
           process.env.NODE_ENV !== 'production'
             ? { target: 'pino-pretty' }
             : undefined,
+        autoLogging: false,
         genReqId: (req, res) => {
           const existingId = req.headers['x-request-id'];
           if (existingId) return existingId;

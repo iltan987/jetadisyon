@@ -40,7 +40,16 @@ export async function apiClient<T>(
   });
 
   if (!response.ok) {
-    const body = (await response.json()) as ApiErrorResponse;
+    let body: ApiErrorResponse;
+    try {
+      body = (await response.json()) as ApiErrorResponse;
+    } catch {
+      throw new ApiClientError(
+        response.status,
+        'SYSTEM.NETWORK_ERROR',
+        `Sunucu hatası (${response.status})`,
+      );
+    }
     throw new ApiClientError(
       response.status,
       body.error?.code ?? 'UNKNOWN',
