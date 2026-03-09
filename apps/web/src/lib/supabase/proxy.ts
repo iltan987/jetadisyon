@@ -1,16 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { hasEnvVars } from '../utils';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  if (!hasEnvVars) {
-    return supabaseResponse;
-  }
-
+  // With Fluid compute, don't put this client in a global environment
+  // variable. Always create a new one on each request.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -35,28 +32,47 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to
-  // debug issues with users being randomly logged out.
-  await supabase.auth.getClaims();
+  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+
+  // IMPORTANT: If you remove getClaims() and you use server-side rendering
+  // with the Supabase client, your users may be randomly logged out.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims;
 
   const { pathname } = request.nextUrl;
 
-  // Optimistic cookie-existence check for auth routing.
-  // This is NOT a security boundary — real auth happens in (admin)/layout.tsx.
-  const hasAuthCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+  const redirectTo = (path: string) => {
+    const url = request.nextUrl.clone();
+    url.pathname = path;
+    return NextResponse.redirect(url);
+  };
 
-  if (pathname.startsWith('/admin') && !hasAuthCookie) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/login';
-    return NextResponse.redirect(loginUrl);
+  // /login is only for unauthenticated users
+  if (pathname.startsWith('/login') && user) {
+    if (user) {
+      if (user.app_metadata?.user_role === 'admin') {
+        return redirectTo('/admin/overview');
+      }
+      return redirectTo('/');
+    }
+    return supabaseResponse;
   }
 
-  if (pathname === '/login' && hasAuthCookie) {
-    const overviewUrl = request.nextUrl.clone();
-    overviewUrl.pathname = '/admin/overview';
-    return NextResponse.redirect(overviewUrl);
+  // /admin requires an authenticated user with the admin role
+  if (pathname.startsWith('/admin')) {
+    if (!user) {
+      return redirectTo('/login');
+    }
+    if (user.app_metadata?.user_role !== 'admin') {
+      return redirectTo('/');
+    }
+    return supabaseResponse;
+  }
+
+  // All other routes require authentication
+  if (!user) {
+    return redirectTo('/login');
   }
 
   return supabaseResponse;
