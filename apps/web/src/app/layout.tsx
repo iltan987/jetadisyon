@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import '@repo/ui/globals.css';
+import { Toaster } from '@repo/ui/components/ui/sonner';
 import { TooltipProvider } from '@repo/ui/components/ui/tooltip';
 import { QueryProvider } from '@/providers/query-provider';
 import { AuthProvider } from '@/providers/auth-provider';
@@ -33,6 +34,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <TooltipProvider>{children}</TooltipProvider>
+            <Toaster />
           </AuthProvider>
         </QueryProvider>
       </body>

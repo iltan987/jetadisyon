@@ -77,9 +77,9 @@ BEGIN
       gen_random_uuid()
     );
 
-    -- Assign admin role
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES (new_user_id, 'admin'::public.app_role);
+    -- Admin profile: role admin, no tenant membership
+    INSERT INTO public.profiles (id, full_name, role)
+    VALUES (new_user_id, 'Admin User', 'admin'::public.app_role);
 
     RAISE NOTICE 'Admin user created: admin0@jetadisyon.com';
   ELSE
@@ -96,8 +96,8 @@ DECLARE
 BEGIN
   -- Create a test tenant if it doesn't exist
   IF NOT EXISTS (SELECT 1 FROM public.tenants WHERE name = 'Test Tenant 0') THEN
-    INSERT INTO public.tenants (id, name, status, license_status)
-    VALUES (gen_random_uuid(), 'Test Tenant 0', 'active', 'trial')
+    INSERT INTO public.tenants (id, name, contact_phone, status, license_status)
+    VALUES (gen_random_uuid(), 'Test Tenant 0', '+905551234567', 'active', 'trial')
     RETURNING id INTO tenant_id;
     RAISE NOTICE 'Test tenant created';
   ELSE
@@ -166,8 +166,12 @@ BEGIN
       gen_random_uuid()
     );
 
-    INSERT INTO public.user_roles (user_id, tenant_id, role)
-    VALUES (tenant_owner_user_id, tenant_id, 'tenant_owner'::public.app_role);
+    -- Tenant owner: profile with role + tenant membership
+    INSERT INTO public.profiles (id, full_name, role)
+    VALUES (tenant_owner_user_id, 'Test Owner', 'tenant_owner'::public.app_role);
+
+    INSERT INTO public.tenant_memberships (user_id, tenant_id)
+    VALUES (tenant_owner_user_id, tenant_id);
 
     RAISE NOTICE 'Tenant owner user created: tenant_owner0@jetadisyon.com';
   ELSE
@@ -235,8 +239,12 @@ BEGIN
       gen_random_uuid()
     );
 
-    INSERT INTO public.user_roles (user_id, tenant_id, role)
-    VALUES (tenant_staff_user_id, tenant_id, 'tenant_staff'::public.app_role);
+    -- Tenant staff: profile with role + tenant membership
+    INSERT INTO public.profiles (id, full_name, role)
+    VALUES (tenant_staff_user_id, 'Test Staff', 'tenant_staff'::public.app_role);
+
+    INSERT INTO public.tenant_memberships (user_id, tenant_id)
+    VALUES (tenant_staff_user_id, tenant_id);
 
     RAISE NOTICE 'Tenant staff user created: tenant_staff0@jetadisyon.com';
   ELSE
