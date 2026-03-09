@@ -8,7 +8,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const { data, error } = await this.supabaseService
-      .getClient()
+      .createAuthClient()
       .auth.signInWithPassword({
         email: dto.email,
         password: dto.password,
@@ -54,7 +54,7 @@ export class AuthService {
 
   async refreshSession(refreshToken: string) {
     const { data, error } = await this.supabaseService
-      .getClient()
+      .createAuthClient()
       .auth.refreshSession({ refresh_token: refreshToken });
 
     if (error || !data.session) {
