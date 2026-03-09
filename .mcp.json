@@ -6,7 +6,7 @@
     },
     "supabase": {
       "type": "http",
-      "url": "http://localhost:8000/mcp"
+      "url": "http://localhost:54321/mcp"
     },
     "zod": {
       "command": "npx",

@@ -1,2 +1,8 @@
-# Supabase CLI
-.temp/
+# Supabase
+.branches
+.temp
+
+# dotenvx
+.env.keys
+.env.local
+.env.*.local
