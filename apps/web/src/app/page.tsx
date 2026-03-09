@@ -7,13 +7,23 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // redirect(user ? '/admin/overview' : '/login');
+  if (!user) {
+    redirect('/login');
+  }
 
-  // For testing purposes, we'll just return the user object for now
+  const { data } = await supabase.auth.getClaims();
+  const userRole = data?.claims?.app_metadata?.user_role;
+
+  if (userRole === 'admin') {
+    redirect('/admin/overview');
+  }
+
+  // Non-admin authenticated users: no dashboard yet
   return (
-    <div>
-      <h1>Welcome to the Jet Adisyon Admin Panel</h1>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <p className="text-muted-foreground">
+        Panele erişiminiz henüz hazır değil.
+      </p>
     </div>
   );
 }

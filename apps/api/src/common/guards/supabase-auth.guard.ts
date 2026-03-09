@@ -45,7 +45,20 @@ export class SupabaseAuthGuard implements CanActivate {
       });
     }
 
-    request.user = data.user;
+    // getUser() validates the token against DB but returns the stored user data.
+    // custom_access_token_hook injects user_role/tenant_id into JWT claims only,
+    // so decode the already-validated JWT to get the hook-injected app_metadata.
+    const claims = this.decodeJwtPayload(token);
+
+    request.user = {
+      ...data.user,
+      app_metadata: claims.app_metadata ?? data.user.app_metadata,
+    };
     return true;
+  }
+
+  private decodeJwtPayload(token: string): Record<string, unknown> {
+    const [, payload] = token.split('.');
+    return JSON.parse(Buffer.from(payload!, 'base64url').toString());
   }
 }

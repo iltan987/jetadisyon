@@ -64,21 +64,33 @@ describe('SupabaseAuthGuard', () => {
     );
   });
 
-  it('should set request.user and return true for valid token', async () => {
-    const mockUser = {
+  it('should set request.user with JWT app_metadata for valid token', async () => {
+    const jwtAppMetadata = { user_role: 'admin', tenant_id: null };
+    const dbUser = {
       id: 'user-id',
       email: 'test@test.com',
-      app_metadata: { user_role: 'admin' },
+      app_metadata: { provider: 'email', providers: ['email'] },
     };
+
+    // Build a fake JWT with the hook-injected app_metadata
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString(
+      'base64url',
+    );
+    const payload = Buffer.from(
+      JSON.stringify({ sub: 'user-id', app_metadata: jwtAppMetadata }),
+    ).toString('base64url');
+    const fakeJwt = `${header}.${payload}.signature`;
+
     mockSupabaseClient.auth.getUser.mockResolvedValue({
-      data: { user: mockUser },
+      data: { user: dbUser },
       error: null,
     });
 
-    const context = createMockContext('Bearer valid-token');
+    const context = createMockContext(`Bearer ${fakeJwt}`);
     const request = context.switchToHttp().getRequest();
 
     expect(await guard.canActivate(context)).toBe(true);
-    expect(request.user).toEqual(mockUser);
+    expect(request.user.app_metadata).toEqual(jwtAppMetadata);
+    expect(request.user.id).toBe('user-id');
   });
 });

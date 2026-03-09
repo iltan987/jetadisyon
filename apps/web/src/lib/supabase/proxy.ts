@@ -48,18 +48,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   };
 
-  // /login is only for unauthenticated users
-  if (pathname.startsWith('/login') && user) {
+  // First-pass guard. Server components (layouts/pages) are the authoritative source.
+
+  // /login — only unauthenticated
+  if (pathname.startsWith('/login')) {
     if (user) {
-      if (user.app_metadata?.user_role === 'admin') {
-        return redirectTo('/admin/overview');
-      }
       return redirectTo('/');
     }
     return supabaseResponse;
   }
 
-  // /admin requires an authenticated user with the admin role
+  // /admin — only authenticated admin
   if (pathname.startsWith('/admin')) {
     if (!user) {
       return redirectTo('/login');
@@ -70,7 +69,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // All other routes require authentication
+  // All other routes — only authenticated
   if (!user) {
     return redirectTo('/login');
   }

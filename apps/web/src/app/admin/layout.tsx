@@ -28,7 +28,7 @@ export default async function AdminLayout({
   const userRole = data?.claims?.app_metadata?.user_role;
 
   if (userRole !== 'admin') {
-    redirect('/login');
+    redirect('/');
   }
 
   return (
