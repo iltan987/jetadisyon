@@ -34,6 +34,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist node_modules .turbo"
   }
 }

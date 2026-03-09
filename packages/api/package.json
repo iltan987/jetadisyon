@@ -6,7 +6,7 @@
     "dev": "pnpm build --watch",
     "build": "tsc -b -v",
     "lint": "eslint \"src/**/*.ts\"",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist node_modules .turbo"
   },
   "main": "./dist/entry.js",
   "types": "./dist/entry.d.ts",

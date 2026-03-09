@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next node_modules .turbo"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
