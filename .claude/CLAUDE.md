@@ -58,13 +58,6 @@ NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
 ```
 
-Supabase is self-hosted. Start it before running the apps.
-
-### Seed Admin User
-
-- Email: `admin@jetadisyon.com`
-- Password: `Admin123!`
-
 ## Architecture Patterns
 
 - **Supabase clients (web)**: 3-tier pattern — `client.ts` (browser), `server.ts` (RSC/actions), `proxy.ts` (request interception)

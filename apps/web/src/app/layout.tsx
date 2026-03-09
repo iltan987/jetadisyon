@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'JetAdisyon',
-  description: 'Business management for small businesses',
+  description: 'Order management for food businesses on delivery marketplaces',
 };
 
 export default function RootLayout({
