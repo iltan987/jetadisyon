@@ -44,19 +44,26 @@ pnpm shadcn add <component>  # Add shadcn components (also works from packages/u
 
 ## Environment
 
+Supabase runs locally via CLI (`supabase start`). Config: `supabase/config.toml`.
+
 ### apps/api (`apps/api/.env`)
 
 ```
-SUPABASE_URL=http://localhost:8000
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_SERVICE_ROLE_KEY=<secret-key>
 ```
 
 ### apps/web (`apps/web/.env.local`)
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 ```
+
+### Supabase CLI key mapping
+
+- **Publishable key** = anon key (frontend, public-facing)
+- **Secret key** = service role key (backend, admin operations)
 
 ## Architecture Patterns
 
