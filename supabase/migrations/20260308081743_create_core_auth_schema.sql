@@ -53,12 +53,15 @@ CREATE INDEX idx_audit_logs_actor_id ON public.audit_logs (actor_id);
 
 -- 7. Auto-update trigger for updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER trigger_tenants_updated_at
   BEFORE UPDATE ON public.tenants
@@ -76,31 +79,56 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- 9. RLS Policies
 
--- tenants: admin full access
-CREATE POLICY policy_tenants_all_admin ON public.tenants
-  FOR ALL USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
-
--- tenants: members can SELECT own tenants via tenant_memberships
-CREATE POLICY policy_tenants_select_member ON public.tenants
+-- tenants: combined SELECT (admin OR member)
+CREATE POLICY policy_tenants_select ON public.tenants
   FOR SELECT USING (
-    id IN (SELECT tenant_id FROM public.tenant_memberships WHERE user_id = (select auth.uid()))
+    ((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin'
+    OR id IN (SELECT tenant_id FROM public.tenant_memberships WHERE user_id = (select auth.uid()))
   );
 
--- profiles: admin full access
-CREATE POLICY policy_profiles_all_admin ON public.profiles
-  FOR ALL USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+-- tenants: admin-only INSERT/UPDATE/DELETE
+CREATE POLICY policy_tenants_insert_admin ON public.tenants
+  FOR INSERT WITH CHECK (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
 
--- profiles: authenticated users can SELECT own row
-CREATE POLICY policy_profiles_select_own ON public.profiles
-  FOR SELECT USING (id = (select auth.uid()));
+CREATE POLICY policy_tenants_update_admin ON public.tenants
+  FOR UPDATE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
 
--- tenant_memberships: admin full access
-CREATE POLICY policy_tenant_memberships_all_admin ON public.tenant_memberships
-  FOR ALL USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+CREATE POLICY policy_tenants_delete_admin ON public.tenants
+  FOR DELETE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
 
--- tenant_memberships: authenticated users can SELECT own rows
-CREATE POLICY policy_tenant_memberships_select_own ON public.tenant_memberships
-  FOR SELECT USING (user_id = (select auth.uid()));
+-- profiles: combined SELECT (admin OR own row)
+CREATE POLICY policy_profiles_select ON public.profiles
+  FOR SELECT USING (
+    ((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin'
+    OR id = (select auth.uid())
+  );
+
+-- profiles: admin-only INSERT/UPDATE/DELETE
+CREATE POLICY policy_profiles_insert_admin ON public.profiles
+  FOR INSERT WITH CHECK (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+
+CREATE POLICY policy_profiles_update_admin ON public.profiles
+  FOR UPDATE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+
+CREATE POLICY policy_profiles_delete_admin ON public.profiles
+  FOR DELETE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+
+-- tenant_memberships: combined SELECT (admin OR own rows)
+CREATE POLICY policy_tenant_memberships_select ON public.tenant_memberships
+  FOR SELECT USING (
+    ((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin'
+    OR user_id = (select auth.uid())
+  );
+
+-- tenant_memberships: admin-only INSERT/UPDATE/DELETE
+CREATE POLICY policy_tenant_memberships_insert_admin ON public.tenant_memberships
+  FOR INSERT WITH CHECK (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+
+CREATE POLICY policy_tenant_memberships_update_admin ON public.tenant_memberships
+  FOR UPDATE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
+
+CREATE POLICY policy_tenant_memberships_delete_admin ON public.tenant_memberships
+  FOR DELETE USING (((select auth.jwt()) -> 'app_metadata'::text ->> 'user_role'::text) = 'admin');
 
 -- audit_logs: authenticated users can INSERT
 CREATE POLICY policy_audit_logs_insert_authenticated ON public.audit_logs
