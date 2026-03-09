@@ -8,5 +8,11 @@
     "*.css": "tailwindcss"
   },
   "tailwindCSS.experimental.configFile": "packages/ui/src/styles/globals.css",
-  "tailwindCSS.classFunctions": ["cn", "cva", "clsx"]
+  "tailwindCSS.classFunctions": ["cn", "cva", "clsx"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
 }
