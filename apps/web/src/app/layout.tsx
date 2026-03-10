@@ -8,6 +8,7 @@ import { TooltipProvider } from '@repo/ui/components/ui/tooltip';
 
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -30,16 +31,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <AuthProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-            <Toaster />
-          </AuthProvider>
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+              <Toaster />
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
