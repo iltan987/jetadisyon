@@ -2,8 +2,8 @@ export interface Tenant {
   id: string;
   name: string;
   contactPhone: string | null;
-  status: string;
-  licenseStatus: string;
+  status: 'active' | 'suspended' | 'inactive';
+  licenseStatus: 'trial' | 'active' | 'expired' | 'cancelled';
   createdAt: string;
   updatedAt: string;
 }
