@@ -5,3 +5,6 @@ node_modules
 pnpm-lock.yaml
 .agents
 next-env.d.ts
+_bmad
+_bmad-output
+.claude

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckIcon, CopyIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { CopyIcon, CheckIcon } from 'lucide-react';
+import { z } from 'zod';
+
 import { Button } from '@repo/ui/components/ui/button';
 import {
   Card,
@@ -16,15 +17,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/ui/card';
-import { Input } from '@repo/ui/components/ui/input';
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from '@repo/ui/components/ui/field';
-import { apiClient, ApiClientError } from '@/lib/api-client';
+import { Input } from '@repo/ui/components/ui/input';
+
 import { useAuth } from '@/hooks/use-auth';
+import { apiClient, ApiClientError } from '@/lib/api-client';
 
 const createTenantSchema = z.object({
   businessName: z
@@ -106,11 +108,11 @@ export default function CreateTenantPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <FieldLabel className="text-sm text-muted-foreground">
+              <FieldLabel className="text-muted-foreground text-sm">
                 E-posta
               </FieldLabel>
               <div className="mt-1 flex items-center gap-2">
-                <code className="flex-1 rounded bg-background px-3 py-2 text-sm">
+                <code className="bg-background flex-1 rounded px-3 py-2 text-sm">
                   {credentials.email}
                 </code>
                 <Button
@@ -127,11 +129,11 @@ export default function CreateTenantPage() {
               </div>
             </div>
             <div>
-              <FieldLabel className="text-sm text-muted-foreground">
+              <FieldLabel className="text-muted-foreground text-sm">
                 Geçici Şifre
               </FieldLabel>
               <div className="mt-1 flex items-center gap-2">
-                <code className="flex-1 rounded bg-background px-3 py-2 text-sm font-bold">
+                <code className="bg-background flex-1 rounded px-3 py-2 text-sm font-bold">
                   {credentials.temporaryPassword}
                 </code>
                 <Button

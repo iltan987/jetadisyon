@@ -1,6 +1,7 @@
-import { CallHandler, ExecutionContext } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
+import { type CallHandler, type ExecutionContext } from '@nestjs/common';
+import { type PinoLogger } from 'nestjs-pino';
 import { of, throwError } from 'rxjs';
+
 import { LoggingInterceptor } from './logging.interceptor';
 
 describe('LoggingInterceptor', () => {

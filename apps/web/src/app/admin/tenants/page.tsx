@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import type { TenantWithOwner } from '@repo/api/tenant.types';
 import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+import type { TenantWithOwner } from '@repo/api/tenant.types';
+import { Badge } from '@repo/ui/components/ui/badge';
 import { Button } from '@repo/ui/components/ui/button';
+import { Skeleton } from '@repo/ui/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -13,10 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from '@repo/ui/components/ui/table';
-import { Badge } from '@repo/ui/components/ui/badge';
-import { Skeleton } from '@repo/ui/components/ui/skeleton';
-import { apiClient } from '@/lib/api-client';
+
 import { useAuth } from '@/hooks/use-auth';
+import { apiClient } from '@/lib/api-client';
 
 export default function TenantsPage() {
   const { session } = useAuth();
@@ -56,7 +58,7 @@ export default function TenantsPage() {
       ) : tenants.length === 0 ? (
         <div className="mt-12 flex flex-col items-center justify-center text-center">
           <p className="text-lg font-medium">Henüz restoran eklenmemiş.</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             İlk restoranı ekleyerek başlayın.
           </p>
           <Button

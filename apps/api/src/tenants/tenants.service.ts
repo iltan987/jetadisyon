@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
+
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 

@@ -3,8 +3,9 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { PinoLogger } from 'nestjs-pino';
+
 import { SupabaseService } from '../supabase/supabase.service';
 import { TenantsService } from './tenants.service';
 

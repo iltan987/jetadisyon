@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { Observable, tap } from 'rxjs';
+
 import { AuthenticatedRequest } from '../types/request.types';
 
 @Injectable()

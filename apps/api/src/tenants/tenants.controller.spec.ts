@@ -1,4 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { type User } from '@supabase/supabase-js';
+
 import { TenantsController } from './tenants.controller';
 import { TenantsService } from './tenants.service';
 
@@ -30,7 +32,7 @@ describe('TenantsController', () => {
       };
       const user = {
         id: 'admin-uuid',
-      } as unknown as import('@supabase/supabase-js').User;
+      } as unknown as User;
       const expected = {
         data: {
           tenant: { id: 'tenant-uuid', name: 'Test Restaurant' },

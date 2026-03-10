@@ -1,13 +1,14 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboardIcon,
+  ActivityIcon,
   BuildingIcon,
   KeyIcon,
-  ActivityIcon,
+  LayoutDashboardIcon,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import {
   Sidebar,
   SidebarContent,

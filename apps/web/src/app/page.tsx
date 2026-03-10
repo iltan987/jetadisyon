@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+
 import { createClient } from '@/lib/supabase/server';
 
 export default async function Home() {
@@ -20,7 +21,7 @@ export default async function Home() {
 
   // Non-admin authenticated users: no dashboard yet
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="bg-background flex min-h-screen items-center justify-center">
       <p className="text-muted-foreground">
         Panele erişiminiz henüz hazır değil.
       </p>
