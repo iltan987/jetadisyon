@@ -12,6 +12,7 @@ import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -21,6 +22,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@repo/ui/components/ui/sidebar';
+
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navItems = [
   { title: 'Genel Bakış', href: '/admin/overview', icon: LayoutDashboardIcon },
@@ -63,6 +66,9 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <ThemeToggle />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
