@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import type { User } from '@supabase/supabase-js';
 import { PinoLogger } from 'nestjs-pino';
 
 import { SupabaseService } from '../supabase/supabase.service';
@@ -257,9 +259,7 @@ describe('TenantsService', () => {
 
       mockSupabaseClient.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ data: mockData, error: null }),
-          }),
+          order: jest.fn().mockResolvedValue({ data: mockData, error: null }),
         }),
       });
 
@@ -270,14 +270,40 @@ describe('TenantsService', () => {
       expect(result.data[0]!.ownerName).toBe('Owner A');
     });
 
+    it('should return tenants without owner (orphaned tenants)', async () => {
+      const mockData = [
+        {
+          id: 'orphan-1',
+          name: 'Orphaned Restaurant',
+          contact_phone: null,
+          status: 'active',
+          license_status: 'trial',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-01T00:00:00Z',
+          tenant_memberships: [],
+        },
+      ];
+
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          order: jest.fn().mockResolvedValue({ data: mockData, error: null }),
+        }),
+      });
+
+      const result = await service.findAll();
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]!.name).toBe('Orphaned Restaurant');
+      expect(result.data[0]!.ownerName).toBeNull();
+      expect(result.data[0]!.ownerId).toBeNull();
+    });
+
     it('should throw on database error', async () => {
       mockSupabaseClient.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'DB error' },
-            }),
+          order: jest.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'DB error' },
           }),
         }),
       });
@@ -289,40 +315,113 @@ describe('TenantsService', () => {
   });
 
   describe('findById', () => {
-    it('should return tenant by id', async () => {
-      const mockData = {
-        id: 'tenant-1',
-        name: 'Restaurant A',
-        contact_phone: null,
-        status: 'active',
-        license_status: 'trial',
-        created_at: '2026-01-01T00:00:00Z',
-        updated_at: '2026-01-01T00:00:00Z',
-        tenant_memberships: [
-          {
-            profiles: {
-              id: 'owner-1',
-              full_name: 'Owner A',
-              role: 'tenant_owner',
-            },
-          },
-        ],
-      };
+    const mockAdminUser = {
+      id: 'admin-uuid',
+      app_metadata: { user_role: 'admin', tenant_id: null },
+    } as unknown as User;
 
+    const mockOwnerUser = {
+      id: 'owner-1',
+      app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+    } as unknown as User;
+
+    const mockTenantData = {
+      id: 'tenant-1',
+      name: 'Restaurant A',
+      contact_phone: null,
+      status: 'active',
+      license_status: 'trial',
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+      tenant_memberships: [
+        {
+          profiles: {
+            id: 'owner-1',
+            full_name: 'Owner A',
+            role: 'tenant_owner',
+          },
+        },
+      ],
+    };
+
+    it('should return tenant by id for admin', async () => {
       mockSupabaseClient.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest
               .fn()
-              .mockResolvedValue({ data: mockData, error: null }),
+              .mockResolvedValue({ data: mockTenantData, error: null }),
           }),
         }),
       });
 
-      const result = await service.findById('tenant-1');
+      const result = await service.findById('tenant-1', mockAdminUser);
 
       expect(result.data.id).toBe('tenant-1');
       expect(result.data.ownerName).toBe('Owner A');
+    });
+
+    it('should return tenant for tenant_owner with membership', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenant_memberships') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  maybeSingle: jest.fn().mockResolvedValue({
+                    data: { id: 'membership-1' },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest
+                .fn()
+                .mockResolvedValue({ data: mockTenantData, error: null }),
+            }),
+          }),
+        };
+      });
+
+      const result = await service.findById('tenant-1', mockOwnerUser);
+
+      expect(result.data.id).toBe('tenant-1');
+    });
+
+    it('should throw ForbiddenException for tenant_owner without membership', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenant_memberships') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  maybeSingle: jest
+                    .fn()
+                    .mockResolvedValue({ data: null, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest
+                .fn()
+                .mockResolvedValue({ data: mockTenantData, error: null }),
+            }),
+          }),
+        };
+      });
+
+      await expect(service.findById('tenant-1', mockOwnerUser)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw NotFoundException when tenant not found', async () => {
@@ -337,9 +436,9 @@ describe('TenantsService', () => {
         }),
       });
 
-      await expect(service.findById('nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findById('nonexistent', mockAdminUser),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -13,7 +13,8 @@ export const createTenantSchema = z.object({
   contactPhone: z
     .string()
     .max(20, { error: 'Phone number must be at most 20 characters' })
-    .optional(),
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 export type CreateTenantDto = z.infer<typeof createTenantSchema>;

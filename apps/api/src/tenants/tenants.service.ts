@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import type { User } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
 
@@ -140,13 +142,14 @@ export class TenantsService {
     const client = this.supabaseService.getClient();
 
     // Join tenants → tenant_memberships → profiles to get owner info
+    // Non-inner join so orphaned tenants (no memberships) still appear
     const { data, error } = await client
       .from('tenants')
       .select(
         `
         *,
-        tenant_memberships!inner (
-          profiles!inner (
+        tenant_memberships (
+          profiles (
             id,
             full_name,
             role
@@ -154,7 +157,6 @@ export class TenantsService {
         )
       `,
       )
-      .eq('tenant_memberships.profiles.role', 'tenant_owner')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -166,8 +168,21 @@ export class TenantsService {
     }
 
     const tenants = (data ?? []).map((t) => {
-      const ownerMembership = t.tenant_memberships?.[0];
-      const ownerProfile = ownerMembership?.profiles;
+      const ownerMembership = (t.tenant_memberships ?? []).find(
+        (tm: { profiles: { role: string } | null }) =>
+          tm.profiles?.role === 'tenant_owner',
+      );
+      const ownerProfile = (
+        ownerMembership as
+          | {
+              profiles: {
+                id: string;
+                full_name: string;
+                role: string;
+              } | null;
+            }
+          | undefined
+      )?.profiles;
       return {
         id: t.id,
         name: t.name,
@@ -184,8 +199,26 @@ export class TenantsService {
     return { data: tenants };
   }
 
-  async findById(tenantId: string) {
+  async findById(tenantId: string, currentUser: User) {
     const client = this.supabaseService.getClient();
+
+    // Non-admin users must have a membership for the requested tenant
+    const userRole = currentUser.app_metadata?.user_role;
+    if (userRole !== 'admin') {
+      const { data: membership } = await client
+        .from('tenant_memberships')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
+      if (!membership) {
+        throw new ForbiddenException({
+          code: 'AUTH.INSUFFICIENT_ROLE',
+          message: 'You do not have access to this tenant',
+        });
+      }
+    }
 
     const { data, error } = await client
       .from('tenants')

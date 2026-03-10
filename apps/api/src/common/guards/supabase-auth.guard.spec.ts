@@ -94,4 +94,18 @@ describe('SupabaseAuthGuard', () => {
     expect(request.user.app_metadata).toEqual(jwtAppMetadata);
     expect(request.user.id).toBe('user-id');
   });
+
+  it('should throw UnauthorizedException for malformed JWT payload', async () => {
+    const malformedJwt = 'header.!!!invalid-base64.signature';
+
+    mockSupabaseClient.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'user-id', app_metadata: {} } },
+      error: null,
+    });
+
+    const context = createMockContext(`Bearer ${malformedJwt}`);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
 });

@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import type { User } from '@supabase/supabase-js';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -29,7 +36,10 @@ export class TenantsController {
 
   @Get(':tenantId')
   @Roles('admin', 'tenant_owner')
-  async findById(@Param('tenantId') tenantId: string) {
-    return this.tenantsService.findById(tenantId);
+  async findById(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.tenantsService.findById(tenantId, user);
   }
 }

@@ -129,27 +129,27 @@ export type Database = {
           contact_phone: string | null;
           created_at: string;
           id: string;
-          license_status: string;
+          license_status: Database['public']['Enums']['tenant_license_status'];
           name: string;
-          status: string;
+          status: Database['public']['Enums']['tenant_status'];
           updated_at: string;
         };
         Insert: {
           contact_phone?: string | null;
           created_at?: string;
           id?: string;
-          license_status?: string;
+          license_status?: Database['public']['Enums']['tenant_license_status'];
           name: string;
-          status?: string;
+          status?: Database['public']['Enums']['tenant_status'];
           updated_at?: string;
         };
         Update: {
           contact_phone?: string | null;
           created_at?: string;
           id?: string;
-          license_status?: string;
+          license_status?: Database['public']['Enums']['tenant_license_status'];
           name?: string;
-          status?: string;
+          status?: Database['public']['Enums']['tenant_status'];
           updated_at?: string;
         };
         Relationships: [];
@@ -163,6 +163,8 @@ export type Database = {
     };
     Enums: {
       app_role: 'admin' | 'tenant_owner' | 'tenant_staff';
+      tenant_license_status: 'trial' | 'active' | 'expired' | 'cancelled';
+      tenant_status: 'active' | 'suspended' | 'inactive';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -297,6 +299,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ['admin', 'tenant_owner', 'tenant_staff'],
+      tenant_license_status: ['trial', 'active', 'expired', 'cancelled'],
+      tenant_status: ['active', 'suspended', 'inactive'],
     },
   },
 } as const;

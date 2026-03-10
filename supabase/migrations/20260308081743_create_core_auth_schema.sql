@@ -3,16 +3,18 @@
 -- Story 1.2: Tenant Creation & Owner Account Setup (schema restructure)
 -- Creates core tables, RLS policies, and custom access token hook
 
--- 1. Create app_role enum
+-- 1. Create enums
 CREATE TYPE public.app_role AS ENUM ('admin', 'tenant_owner', 'tenant_staff');
+CREATE TYPE public.tenant_status AS ENUM ('active', 'suspended', 'inactive');
+CREATE TYPE public.tenant_license_status AS ENUM ('trial', 'active', 'expired', 'cancelled');
 
 -- 2. Create tenants table
 CREATE TABLE public.tenants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   contact_phone text,
-  status text NOT NULL DEFAULT 'active',
-  license_status text NOT NULL DEFAULT 'trial',
+  status public.tenant_status NOT NULL DEFAULT 'active',
+  license_status public.tenant_license_status NOT NULL DEFAULT 'trial',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );

@@ -57,6 +57,7 @@ export default function LoginPage() {
         refresh_token: data.refreshToken,
       });
 
+      router.refresh();
       router.push('/admin/overview');
     } catch (err) {
       if (err instanceof ApiClientError) {

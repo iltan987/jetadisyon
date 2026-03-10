@@ -38,10 +38,15 @@ const createTenantSchema = z.object({
     .min(2, 'Sahip adı en az 2 karakter olmalıdır')
     .max(100),
   ownerEmail: z.email('Geçerli bir e-posta adresi giriniz'),
-  contactPhone: z.string().max(20).optional(),
+  contactPhone: z
+    .string()
+    .max(20)
+    .optional()
+    .transform((v) => v || undefined),
 });
 
-type CreateTenantForm = z.infer<typeof createTenantSchema>;
+type CreateTenantFormInput = z.input<typeof createTenantSchema>;
+type CreateTenantFormOutput = z.infer<typeof createTenantSchema>;
 
 interface Credentials {
   email: string;
@@ -61,7 +66,7 @@ export default function CreateTenantPage() {
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const form = useForm<CreateTenantForm>({
+  const form = useForm<CreateTenantFormInput, unknown, CreateTenantFormOutput>({
     resolver: zodResolver(createTenantSchema),
     defaultValues: {
       businessName: '',
@@ -71,7 +76,7 @@ export default function CreateTenantPage() {
     },
   });
 
-  async function onSubmit(data: CreateTenantForm) {
+  async function onSubmit(data: CreateTenantFormOutput) {
     try {
       const res = await apiClient<CreateTenantResponse>('/tenants', {
         method: 'POST',

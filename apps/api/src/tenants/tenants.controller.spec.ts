@@ -29,6 +29,7 @@ describe('TenantsController', () => {
         businessName: 'Test Restaurant',
         ownerFullName: 'John Doe',
         ownerEmail: 'john@example.com',
+        contactPhone: undefined,
       };
       const user = {
         id: 'admin-uuid',
@@ -64,13 +65,20 @@ describe('TenantsController', () => {
   });
 
   describe('findById', () => {
-    it('should return tenant by id', async () => {
+    it('should call findById with tenantId and user', async () => {
+      const user = {
+        id: 'admin-uuid',
+        app_metadata: { user_role: 'admin' },
+      } as unknown as User;
       const expected = { data: { id: 'tenant-1', name: 'Restaurant A' } };
       mockTenantsService.findById.mockResolvedValue(expected);
 
-      const result = await controller.findById('tenant-1');
+      const result = await controller.findById('tenant-1', user);
 
-      expect(mockTenantsService.findById).toHaveBeenCalledWith('tenant-1');
+      expect(mockTenantsService.findById).toHaveBeenCalledWith(
+        'tenant-1',
+        user,
+      );
       expect(result).toEqual(expected);
     });
   });
