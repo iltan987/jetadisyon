@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { AdminSidebar } from './_components/admin-sidebar';
+
+import { Separator } from '@repo/ui/components/ui/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@repo/ui/components/ui/sidebar';
-import { Separator } from '@repo/ui/components/ui/separator';
+
+import { createClient } from '@/lib/supabase/server';
+
+import { AdminSidebar } from './_components/admin-sidebar';
 
 export default async function AdminLayout({
   children,

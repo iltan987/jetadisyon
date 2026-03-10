@@ -1,5 +1,3 @@
-import type { AppRole } from './roles.types';
-
 export interface Tenant {
   id: string;
   name: string;

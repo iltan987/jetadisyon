@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { Throttle, minutes } from '@nestjs/throttler';
+import { minutes, Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
+
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';

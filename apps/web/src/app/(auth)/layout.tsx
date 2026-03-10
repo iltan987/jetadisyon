@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+
 import { createClient } from '@/lib/supabase/server';
 
 export default async function AuthLayout({
@@ -16,7 +17,7 @@ export default async function AuthLayout({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">{children}</div>
     </div>
   );

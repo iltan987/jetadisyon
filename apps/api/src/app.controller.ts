@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
+
 import { AppService } from './app.service';
 import { Public } from './common/decorators/public.decorator';
 

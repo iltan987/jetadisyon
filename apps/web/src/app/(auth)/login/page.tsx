@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
+
+import type { LoginResponse } from '@repo/api/auth.types';
 import { Button } from '@repo/ui/components/ui/button';
-import { Input } from '@repo/ui/components/ui/input';
 import {
   Card,
   CardContent,
@@ -20,9 +21,10 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@repo/ui/components/ui/field';
+import { Input } from '@repo/ui/components/ui/input';
+
 import { apiClient, ApiClientError } from '@/lib/api-client';
 import { createClient } from '@/lib/supabase/client';
-import type { LoginResponse } from '@repo/api/auth.types';
 
 const loginSchema = z.object({
   email: z.email({ error: 'Geçerli bir e-posta adresi girin' }),
@@ -125,7 +127,7 @@ export default function LoginPage() {
             />
 
             {generalError && (
-              <p className="text-sm text-destructive">{generalError}</p>
+              <p className="text-destructive text-sm">{generalError}</p>
             )}
 
             <Button

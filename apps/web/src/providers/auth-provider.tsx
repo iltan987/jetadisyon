@@ -1,7 +1,7 @@
 'use client';
 
-import type { AuthUser } from '@repo/api/auth.types';
 import type { Session, User } from '@supabase/supabase-js';
+import type { ReactNode } from 'react';
 import {
   createContext,
   useCallback,
@@ -9,7 +9,9 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { ReactNode } from 'react';
+
+import type { AuthUser } from '@repo/api/auth.types';
+
 import { createClient } from '@/lib/supabase/client';
 
 export interface AuthContextValue {

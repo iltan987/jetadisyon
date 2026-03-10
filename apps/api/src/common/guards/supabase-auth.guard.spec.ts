@@ -1,6 +1,7 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SupabaseService } from '../../supabase/supabase.service';
+
+import { type SupabaseService } from '../../supabase/supabase.service';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 
 describe('SupabaseAuthGuard', () => {
@@ -46,7 +47,7 @@ describe('SupabaseAuthGuard', () => {
   });
 
   it('should throw UnauthorizedException when token is missing', async () => {
-    const context = createMockContext(undefined);
+    const context = createMockContext();
     await expect(guard.canActivate(context)).rejects.toThrow(
       UnauthorizedException,
     );

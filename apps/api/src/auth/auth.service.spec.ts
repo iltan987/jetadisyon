@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
+
 import { SupabaseService } from '../supabase/supabase.service';
 import { AuthService } from './auth.service';
 

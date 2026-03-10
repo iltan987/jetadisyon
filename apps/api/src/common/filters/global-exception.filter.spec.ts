@@ -3,7 +3,8 @@ import {
   HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
+import { type PinoLogger } from 'nestjs-pino';
+
 import { GlobalExceptionFilter } from './global-exception.filter';
 
 function createMockArgumentsHost(mockResponse: Record<string, jest.Mock>) {

@@ -1,10 +1,13 @@
+import '@repo/ui/globals.css';
+
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import '@repo/ui/globals.css';
+
 import { Toaster } from '@repo/ui/components/ui/sonner';
 import { TooltipProvider } from '@repo/ui/components/ui/tooltip';
-import { QueryProvider } from '@/providers/query-provider';
+
 import { AuthProvider } from '@/providers/auth-provider';
+import { QueryProvider } from '@/providers/query-provider';
 
 const inter = Inter({
   variable: '--font-sans',

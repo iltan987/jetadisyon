@@ -27,7 +27,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+      if (typeof exceptionResponse === 'object' && exceptionResponse != null) {
         const resp = exceptionResponse as Record<string, unknown>;
         code = (resp.code as string) ?? this.statusToCode(status);
         message = (resp.message as string) ?? exception.message;
