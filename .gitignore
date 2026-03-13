@@ -14,9 +14,6 @@ coverage/
 # Playwright MCP
 .playwright-mcp/
 
-# BMAD output
-_bmad-output/
-
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json
