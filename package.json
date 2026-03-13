@@ -16,8 +16,8 @@
     "@repo/typescript-config": "workspace:*",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "supabase": "^2.77.1",
-    "turbo": "^2.8.14"
+    "supabase": "^2.78.1",
+    "turbo": "^2.8.16"
   },
   "packageManager": "pnpm@10.30.3",
   "engines": {
