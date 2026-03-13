@@ -1,5 +1,8 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+import type { ZodType } from 'zod';
+
+import { clientEnv } from './env/client';
+
+const API_BASE_URL = clientEnv.NEXT_PUBLIC_API_URL;
 
 interface ApiError {
   code: string;
@@ -25,38 +28,69 @@ export class ApiClientError extends Error {
 
 export async function apiClient<T>(
   path: string,
-  options: RequestInit & { accessToken?: string } = {},
+  options: RequestInit & {
+    accessToken?: string;
+    timeout?: number;
+    schema?: ZodType<T>;
+  } = {},
 ): Promise<T> {
-  const { accessToken, ...fetchOptions } = options;
+  const { accessToken, timeout = 30_000, schema, ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers);
   headers.set('Content-Type', 'application/json');
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...fetchOptions,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  if (!response.ok) {
-    let body: ApiErrorResponse;
-    try {
-      body = (await response.json()) as ApiErrorResponse;
-    } catch {
+  const signal = fetchOptions.signal
+    ? AbortSignal.any([controller.signal, fetchOptions.signal])
+    : controller.signal;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...fetchOptions,
+      headers,
+      signal,
+    });
+
+    if (!response.ok) {
+      let body: ApiErrorResponse;
+      try {
+        body = (await response.json()) as ApiErrorResponse;
+      } catch {
+        throw new ApiClientError(
+          response.status,
+          'SYSTEM.NETWORK_ERROR',
+          `Sunucu hatası (${response.status})`,
+        );
+      }
       throw new ApiClientError(
         response.status,
-        'SYSTEM.NETWORK_ERROR',
-        `Sunucu hatası (${response.status})`,
+        body.error?.code ?? 'UNKNOWN',
+        body.error?.message ?? 'Bir hata oluştu',
+        body.error?.details,
       );
     }
-    throw new ApiClientError(
-      response.status,
-      body.error?.code ?? 'UNKNOWN',
-      body.error?.message ?? 'Bir hata oluştu',
-      body.error?.details,
-    );
-  }
 
-  return response.json() as Promise<T>;
+    const json = await response.json();
+
+    if (schema) {
+      return schema.parse(json) as T;
+    }
+
+    return json as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiClientError(
+        0,
+        'SYSTEM.TIMEOUT',
+        `İstek zaman aşımına uğradı (${timeout / 1000}s)`,
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }

@@ -51,6 +51,8 @@ Supabase runs locally via CLI (`supabase start`). Config: `supabase/config.toml`
 ```
 SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_SERVICE_ROLE_KEY=<secret-key>
+THROTTLE_TTL=60          # optional, default 60s
+THROTTLE_LIMIT=100       # optional, default 100 req/ttl
 ```
 
 ### apps/web (`apps/web/.env.local`)
@@ -58,6 +60,7 @@ SUPABASE_SERVICE_ROLE_KEY=<secret-key>
 ```
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1  # optional, has default
 ```
 
 ### Supabase CLI key mapping
@@ -69,7 +72,12 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 
 - **Supabase clients (web)**: 3-tier pattern — `client.ts` (browser), `server.ts` (RSC/actions), `proxy.ts` (request interception)
 - **Next.js 16 uses `proxy.ts`**, not `middleware.ts`, for request interception (`src/proxy.ts`)
-- **Supabase (api)**: Global `SupabaseModule` with `SupabaseService`, env validated with Zod v4 (`src/config/env.validation.ts`)
+- **Env validation (web)**: `@t3-oss/env-nextjs` with split files — `src/lib/env/client.ts` (NEXT_PUBLIC_*), `src/lib/env/server.ts` (server-only). Import `clientEnv` or `serverEnv` as needed.
+- **Env validation (api)**: Zod v4 schema in `src/config/env.validation.ts`, loaded via `@nestjs/config`
+- **API client (web)**: `src/lib/api-client.ts` — fetch wrapper with timeout (30s default), optional Zod schema validation, auth token injection
+- **Shared constants**: Labels in `packages/api/src/tenant.constants.ts`, styles in `apps/web/src/lib/tenant-styles.ts` (labels = data, styles = presentation)
+- **Query keys (web)**: Factory pattern in `src/lib/query-keys.ts`
+- **Phone validation**: `libphonenumber-js` for international phone number validation in both API DTOs and frontend forms
 - **shadcn/ui**: Dual `components.json` — one in `packages/ui` (source of truth), one in `apps/web` (points to ui package). Components live in `packages/ui/src/components/`
 - **Cross-package imports**: `transpilePackages: ["@repo/ui"]` in next.config.ts + tsconfig paths
 

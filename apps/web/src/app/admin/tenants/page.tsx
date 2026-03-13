@@ -4,6 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
+import {
+  TENANT_LICENSE_LABELS,
+  TENANT_STATUS_LABELS,
+} from '@repo/api/tenant.constants';
 import type { TenantWithOwner } from '@repo/api/tenant.types';
 import { Badge } from '@repo/ui/components/ui/badge';
 import { Button } from '@repo/ui/components/ui/button';
@@ -19,36 +23,11 @@ import {
 
 import { useAuth } from '@/hooks/use-auth';
 import { apiClient } from '@/lib/api-client';
-
-const statusLabels: Record<string, string> = {
-  active: 'Aktif',
-  suspended: 'Askıda',
-  inactive: 'Pasif',
-};
-
-const statusStyles: Record<string, string> = {
-  active:
-    'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300',
-  suspended:
-    'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300',
-  inactive: 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300',
-};
-
-const licenseLabels: Record<string, string> = {
-  trial: 'Deneme',
-  active: 'Aktif',
-  expired: 'Süresi Dolmuş',
-  cancelled: 'İptal',
-};
-
-const licenseStyles: Record<string, string> = {
-  trial:
-    'border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400',
-  active:
-    'border-green-300 text-green-700 dark:border-green-700 dark:text-green-400',
-  expired: 'border-red-300 text-red-600 dark:border-red-700 dark:text-red-400',
-  cancelled: 'border-muted text-muted-foreground',
-};
+import { queryKeys } from '@/lib/query-keys';
+import {
+  TENANT_LICENSE_STYLES,
+  TENANT_STATUS_STYLES,
+} from '@/lib/tenant-styles';
 
 export default function TenantsPage() {
   const { session, isLoading: isAuthLoading } = useAuth();
@@ -58,7 +37,7 @@ export default function TenantsPage() {
     isLoading: isQueryLoading,
     error,
   } = useQuery({
-    queryKey: ['tenants'],
+    queryKey: queryKeys.tenants.all,
     queryFn: () =>
       apiClient<{ data: TenantWithOwner[] }>('/tenants', {
         accessToken: session!.access_token,
@@ -143,17 +122,17 @@ export default function TenantsPage() {
                     <TableCell>{tenant.ownerName ?? '-'}</TableCell>
                     <TableCell>
                       <Badge
-                        className={`h-auto px-2.5 py-1 ${statusStyles[tenant.status]}`}
+                        className={`h-auto px-2.5 py-1 ${TENANT_STATUS_STYLES[tenant.status]}`}
                       >
-                        {statusLabels[tenant.status] ?? tenant.status}
+                        {TENANT_STATUS_LABELS[tenant.status] ?? tenant.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`h-auto px-2.5 py-1 ${licenseStyles[tenant.licenseStatus]}`}
+                        className={`h-auto px-2.5 py-1 ${TENANT_LICENSE_STYLES[tenant.licenseStatus]}`}
                       >
-                        {licenseLabels[tenant.licenseStatus] ??
+                        {TENANT_LICENSE_LABELS[tenant.licenseStatus] ??
                           tenant.licenseStatus}
                       </Badge>
                     </TableCell>

@@ -23,6 +23,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@repo/api": "workspace:*",
     "@supabase/supabase-js": "^2.99.1",
+    "libphonenumber-js": "^1.12.40",
     "nestjs-pino": "^4.6.0",
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",

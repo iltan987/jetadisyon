@@ -48,10 +48,11 @@ CREATE TABLE public.audit_logs (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- 6. Indexes on foreign keys
+-- 6. Indexes on foreign keys and frequently queried columns
 CREATE INDEX idx_tenant_memberships_user_id ON public.tenant_memberships (user_id);
 CREATE INDEX idx_tenant_memberships_tenant_id ON public.tenant_memberships (tenant_id);
 CREATE INDEX idx_audit_logs_actor_id ON public.audit_logs (actor_id);
+CREATE INDEX idx_profiles_role ON public.profiles (role);
 
 -- 7. Auto-update trigger for updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
