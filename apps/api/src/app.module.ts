@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
@@ -41,9 +41,16 @@ import { TenantsModule } from './tenants/tenants.module';
         },
       },
     }),
-    ThrottlerModule.forRoot([
-      { name: 'default', ttl: seconds(60), limit: 100 },
-    ]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'default',
+          ttl: seconds(config.get<number>('THROTTLE_TTL', 60)),
+          limit: config.get<number>('THROTTLE_LIMIT', 100),
+        },
+      ],
+    }),
     SupabaseModule,
     AuthModule,
     TenantsModule,

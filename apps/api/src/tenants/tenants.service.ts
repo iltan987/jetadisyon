@@ -54,7 +54,10 @@ export class TenantsService {
         });
 
       if (authError || !authData.user) {
-        if (authError?.message?.includes('already been registered')) {
+        if (
+          authError?.code === 'email_exists' ||
+          authError?.code === 'user_already_exists'
+        ) {
           throw new ConflictException({
             code: 'TENANT.DUPLICATE_EMAIL',
             message: 'An account with this email already exists',
@@ -106,7 +109,10 @@ export class TenantsService {
       });
 
       if (auditError) {
-        this.logger.warn({ auditError }, 'Failed to write audit log');
+        this.logger.error(
+          { auditError, action: 'CREATE_TENANT', entityId: tenantId },
+          'Failed to write audit log for critical action',
+        );
       }
 
       return {
@@ -274,19 +280,26 @@ export class TenantsService {
     tenantId?: string,
     authUserId?: string,
   ) {
-    try {
-      if (authUserId) {
+    if (authUserId) {
+      try {
         // Deleting auth user cascades to profiles and tenant_memberships
         await client.auth.admin.deleteUser(authUserId);
+      } catch (cleanupError) {
+        this.logger.error(
+          { cleanupError, authUserId },
+          'Failed to delete auth user during cleanup',
+        );
       }
-      if (tenantId) {
+    }
+    if (tenantId) {
+      try {
         await client.from('tenants').delete().eq('id', tenantId);
+      } catch (cleanupError) {
+        this.logger.error(
+          { cleanupError, tenantId },
+          'Failed to delete tenant during cleanup',
+        );
       }
-    } catch (cleanupError) {
-      this.logger.error(
-        { cleanupError },
-        'Cleanup after failed tenant creation',
-      );
     }
   }
 }

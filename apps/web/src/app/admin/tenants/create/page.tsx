@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -42,7 +43,11 @@ const createTenantSchema = z.object({
     .string()
     .max(20)
     .optional()
-    .transform((v) => v || undefined),
+    .transform((v) => v || undefined)
+    .refine(
+      (v) => !v || isValidPhoneNumber(v),
+      'Geçerli bir telefon numarası giriniz (ör: +905551234567)',
+    ),
 });
 
 type CreateTenantFormInput = z.input<typeof createTenantSchema>;

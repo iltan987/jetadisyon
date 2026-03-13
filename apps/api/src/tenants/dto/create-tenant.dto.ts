@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
 
 export const createTenantSchema = z.object({
@@ -14,7 +15,10 @@ export const createTenantSchema = z.object({
     .string()
     .max(20, { error: 'Phone number must be at most 20 characters' })
     .optional()
-    .transform((v) => v || undefined),
+    .transform((v) => v || undefined)
+    .refine((v) => !v || isValidPhoneNumber(v), {
+      error: 'Valid phone number required (e.g., +905551234567)',
+    }),
 });
 
 export type CreateTenantDto = z.infer<typeof createTenantSchema>;

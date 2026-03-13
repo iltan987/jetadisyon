@@ -61,8 +61,15 @@ export class SupabaseAuthGuard implements CanActivate {
   private decodeJwtPayload(token: string): Record<string, unknown> {
     try {
       const [, payload] = token.split('.');
-      return JSON.parse(Buffer.from(payload!, 'base64url').toString());
-    } catch {
+      if (!payload) {
+        throw new UnauthorizedException({
+          code: 'AUTH.TOKEN_INVALID',
+          message: 'Invalid or expired token',
+        });
+      }
+      return JSON.parse(Buffer.from(payload, 'base64url').toString());
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException({
         code: 'AUTH.TOKEN_INVALID',
         message: 'Invalid or expired token',

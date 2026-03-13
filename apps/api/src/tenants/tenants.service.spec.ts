@@ -150,6 +150,7 @@ describe('TenantsService', () => {
         data: { user: null },
         error: {
           message: 'A user with this email address has already been registered',
+          code: 'email_exists',
         },
       });
       mockSupabaseClient.auth.admin.deleteUser.mockResolvedValue({
@@ -231,6 +232,63 @@ describe('TenantsService', () => {
       expect(mockSupabaseClient.auth.admin.deleteUser).toHaveBeenCalledWith(
         'owner-uuid',
       );
+    });
+
+    it('should still delete tenant when deleteUser fails during cleanup', async () => {
+      const tenantRow = {
+        id: 'tenant-uuid',
+        name: 'Test',
+        contact_phone: null,
+        status: 'active',
+        license_status: 'trial',
+        created_at: '',
+        updated_at: '',
+      };
+
+      const deleteEq = jest.fn().mockResolvedValue({ error: null });
+      const deleteFn = jest.fn().mockReturnValue({ eq: deleteEq });
+
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenants') {
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest
+                  .fn()
+                  .mockResolvedValue({ data: tenantRow, error: null }),
+              }),
+            }),
+            delete: deleteFn,
+          };
+        }
+        if (table === 'profiles') {
+          return {
+            insert: jest
+              .fn()
+              .mockResolvedValue({ error: { message: 'Profile error' } }),
+          };
+        }
+        return { insert: jest.fn().mockResolvedValue({ error: null }) };
+      });
+
+      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
+        data: { user: { id: 'owner-uuid' } },
+        error: null,
+      });
+      mockSupabaseClient.auth.admin.deleteUser.mockRejectedValue(
+        new Error('Auth service unavailable'),
+      );
+
+      await expect(service.createTenant(dto, adminUserId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      // Verify both cleanup steps were attempted
+      expect(mockSupabaseClient.auth.admin.deleteUser).toHaveBeenCalledWith(
+        'owner-uuid',
+      );
+      expect(deleteFn).toHaveBeenCalled();
+      expect(deleteEq).toHaveBeenCalledWith('id', 'tenant-uuid');
     });
   });
 
