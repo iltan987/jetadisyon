@@ -19,12 +19,5 @@ export default async function Home() {
     redirect('/admin/overview');
   }
 
-  // Non-admin authenticated users: no dashboard yet
-  return (
-    <div className="bg-background flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">
-        Panele erişiminiz henüz hazır değil.
-      </p>
-    </div>
-  );
+  redirect('/dashboard');
 }

@@ -94,5 +94,23 @@ export async function updateSession(request: NextRequest) {
     return redirectToLogin();
   }
 
+  // Forced password change detection (non-admin users only)
+  // getClaims() does NOT include user_metadata — must use getUser() for this check
+  const userRole = user.app_metadata?.user_role;
+  if (userRole !== 'admin') {
+    const {
+      data: { user: fullUser },
+    } = await supabase.auth.getUser();
+
+    if (fullUser?.user_metadata?.must_change_password === true) {
+      if (!pathname.startsWith('/change-password')) {
+        return redirectTo('/change-password');
+      }
+    } else if (pathname.startsWith('/change-password')) {
+      // Prevent accessing change-password when not required
+      return redirectTo('/dashboard');
+    }
+  }
+
   return supabaseResponse;
 }

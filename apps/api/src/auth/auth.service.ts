@@ -3,13 +3,18 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 
 import { SupabaseService } from '../supabase/supabase.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly logger: PinoLogger,
+  ) {}
 
   async login(dto: LoginDto) {
     const { data, error } = await this.supabaseService
@@ -47,6 +52,8 @@ export class AuthService {
       data: {
         accessToken: session.access_token,
         refreshToken: session.refresh_token,
+        mustChangePassword:
+          user.user_metadata?.must_change_password === true,
         user: {
           id: user.id,
           email: user.email,
@@ -90,6 +97,55 @@ export class AuthService {
         refreshToken: data.session.refresh_token,
       },
     };
+  }
+
+  async changePassword(userId: string, email: string, dto: ChangePasswordDto) {
+    // Verify current password by re-authenticating
+    const { error: signInError } = await this.supabaseService
+      .createAuthClient()
+      .auth.signInWithPassword({
+        email,
+        password: dto.currentPassword,
+      });
+
+    if (signInError) {
+      throw new UnauthorizedException({
+        code: 'AUTH.INVALID_CREDENTIALS',
+        message: 'Current password is incorrect',
+      });
+    }
+
+    // Update password via admin API
+    const { error: updateError } = await this.supabaseService
+      .getClient()
+      .auth.admin.updateUserById(userId, {
+        password: dto.newPassword,
+      });
+
+    if (updateError) {
+      throw new InternalServerErrorException({
+        code: 'AUTH.PASSWORD_UPDATE_FAILED',
+        message: 'Failed to update password',
+      });
+    }
+
+    // Clear must_change_password flag (setting to null deletes the key)
+    const { error: metadataError } = await this.supabaseService
+      .getClient()
+      .auth.admin.updateUserById(userId, {
+        user_metadata: { must_change_password: null },
+      });
+
+    if (metadataError) {
+      this.logger.warn(
+        { userId },
+        'Password updated but failed to clear must_change_password flag',
+      );
+    }
+
+    this.logger.info({ userId }, 'Password changed successfully');
+
+    return { data: { message: 'Password changed successfully' } };
   }
 
   async getMe(userId: string) {

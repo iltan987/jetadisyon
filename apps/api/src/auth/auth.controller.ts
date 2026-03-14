@@ -4,8 +4,13 @@ import type { User } from '@supabase/supabase-js';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
+import {
+  type ChangePasswordDto,
+  changePasswordSchema,
+} from './dto/change-password.dto';
 import { type LoginDto, loginSchema } from './dto/login.dto';
 import { type RefreshDto, refreshSchema } from './dto/refresh.dto';
 
@@ -29,6 +34,15 @@ export class AuthController {
   @Public()
   async refresh(@Body(new ZodValidationPipe(refreshSchema)) dto: RefreshDto) {
     return this.authService.refreshSession(dto.refreshToken);
+  }
+
+  @Post('change-password')
+  @Roles('tenant_owner', 'tenant_staff')
+  async changePassword(
+    @CurrentUser() user: User,
+    @Body(new ZodValidationPipe(changePasswordSchema)) dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.id, user.email!, dto);
   }
 
   @Get('me')

@@ -61,9 +61,17 @@ function LoginForm() {
       });
 
       router.refresh();
+
+      if (data.mustChangePassword) {
+        router.push('/change-password');
+        return;
+      }
+
       const destination = isValidReturnPath(nextPath)
         ? nextPath
-        : '/admin/overview';
+        : data.user.role === 'admin'
+          ? '/admin/overview'
+          : '/dashboard';
       router.push(destination);
     } catch (err) {
       if (err instanceof ApiClientError) {

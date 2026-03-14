@@ -19,6 +19,8 @@ export interface AuthContextValue {
   user: AuthUser | null;
   session: Session | null;
   isLoading: boolean;
+  mustChangePassword: boolean;
+  setMustChangePassword: (value: boolean) => void;
   signOut: () => Promise<void>;
 }
 
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -83,8 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const value = useMemo(
-    () => ({ user, session, isLoading, signOut }),
-    [user, session, isLoading, signOut],
+    () => ({
+      user,
+      session,
+      isLoading,
+      mustChangePassword,
+      setMustChangePassword,
+      signOut,
+    }),
+    [user, session, isLoading, mustChangePassword, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
