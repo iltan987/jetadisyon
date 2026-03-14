@@ -37,7 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "shadcn": "^4.0.6",
+    "shadcn": "^4.0.7",
     "typescript": "^5"
   }
 }
