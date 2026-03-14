@@ -13,7 +13,7 @@ export default async function Home() {
   }
 
   const { data } = await supabase.auth.getClaims();
-  const userRole = data?.claims?.app_metadata?.user_role;
+  const userRole = data?.claims.app_metadata?.user_role;
 
   if (userRole === 'admin') {
     redirect('/admin/overview');

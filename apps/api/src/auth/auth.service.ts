@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { SupabaseService } from '../supabase/supabase.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,7 +19,22 @@ export class AuthService {
         password: dto.password,
       });
 
-    if (error || !data.session) {
+    if (error) {
+      // status 0 = network/connection failure, 5xx = server error
+      const status = error.status ?? 0;
+      if (status === 0 || status >= 500) {
+        throw new InternalServerErrorException({
+          code: 'AUTH.SERVICE_UNAVAILABLE',
+          message: 'Authentication service is temporarily unavailable',
+        });
+      }
+      throw new UnauthorizedException({
+        code: 'AUTH.INVALID_CREDENTIALS',
+        message: 'Invalid email or password',
+      });
+    }
+
+    if (!data.session) {
       throw new UnauthorizedException({
         code: 'AUTH.INVALID_CREDENTIALS',
         message: 'Invalid email or password',
@@ -31,8 +50,8 @@ export class AuthService {
         user: {
           id: user.id,
           email: user.email,
-          role: user.app_metadata?.user_role ?? null,
-          tenantId: user.app_metadata?.tenant_id ?? null,
+          role: user.app_metadata.user_role ?? null,
+          tenantId: user.app_metadata.tenant_id ?? null,
         },
       },
     };
@@ -90,8 +109,8 @@ export class AuthService {
       data: {
         id: user.id,
         email: user.email,
-        role: user.app_metadata?.user_role ?? null,
-        tenantId: user.app_metadata?.tenant_id ?? null,
+        role: user.app_metadata.user_role ?? null,
+        tenantId: user.app_metadata.tenant_id ?? null,
       },
     };
   }

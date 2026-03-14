@@ -13,6 +13,7 @@ import {
 import type { AuthUser } from '@repo/api/auth.types';
 
 import { createClient } from '@/lib/supabase/client';
+import { isValidReturnPath } from '@/lib/validate-return-path';
 
 export interface AuthContextValue {
   user: AuthUser | null;
@@ -42,10 +43,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ? mapUser(session.user) : null);
       setIsLoading(false);
+
+      if (event === 'SIGNED_OUT') {
+        const pathname = window.location.pathname;
+        // Don't reload if already on /login — avoids clearing form state
+        if (pathname === '/login') return;
+        const returnPath = pathname + window.location.search;
+        const loginUrl =
+          pathname !== '/'
+            ? `/login?next=${encodeURIComponent(returnPath)}`
+            : '/login';
+        window.location.href = loginUrl;
+      }
+
+      // Cross-tab auto-login: only navigate if this tab is in the background
+      if (
+        event === 'SIGNED_IN' &&
+        window.location.pathname === '/login' &&
+        document.visibilityState === 'hidden'
+      ) {
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get('next');
+        const destination = isValidReturnPath(next) ? next : '/';
+        window.location.href = destination;
+      }
     });
 
     return () => subscription.unsubscribe();
