@@ -209,7 +209,7 @@ export class TenantsService {
     const client = this.supabaseService.getClient();
 
     // Non-admin users must have a membership for the requested tenant
-    const userRole = currentUser.app_metadata?.user_role;
+    const userRole = currentUser.app_metadata.user_role;
     if (userRole !== 'admin') {
       const { data: membership } = await client
         .from('tenant_memberships')

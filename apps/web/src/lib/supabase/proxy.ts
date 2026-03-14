@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { clientEnv } from '../env/client';
+import { isValidReturnPath } from '../validate-return-path';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -47,6 +48,19 @@ export async function updateSession(request: NextRequest) {
   const redirectTo = (path: string) => {
     const url = request.nextUrl.clone();
     url.pathname = path;
+    url.search = '';
+    return NextResponse.redirect(url);
+  };
+
+  const redirectToLogin = () => {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = '';
+    // Don't set ?next= for root — it just role-redirects
+    if (pathname !== '/') {
+      const returnPath = pathname + request.nextUrl.search;
+      url.searchParams.set('next', returnPath);
+    }
     return NextResponse.redirect(url);
   };
 
@@ -55,6 +69,10 @@ export async function updateSession(request: NextRequest) {
   // /login — only unauthenticated
   if (pathname.startsWith('/login')) {
     if (user) {
+      const next = request.nextUrl.searchParams.get('next');
+      if (isValidReturnPath(next)) {
+        return redirectTo(next);
+      }
       return redirectTo('/');
     }
     return supabaseResponse;
@@ -63,7 +81,7 @@ export async function updateSession(request: NextRequest) {
   // /admin — only authenticated admin
   if (pathname.startsWith('/admin')) {
     if (!user) {
-      return redirectTo('/login');
+      return redirectToLogin();
     }
     if (user.app_metadata?.user_role !== 'admin') {
       return redirectTo('/');
@@ -73,7 +91,7 @@ export async function updateSession(request: NextRequest) {
 
   // All other routes — only authenticated
   if (!user) {
-    return redirectTo('/login');
+    return redirectToLogin();
   }
 
   return supabaseResponse;

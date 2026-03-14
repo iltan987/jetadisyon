@@ -1,8 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -25,6 +25,7 @@ import { Input } from '@repo/ui/components/ui/input';
 
 import { apiClient, ApiClientError } from '@/lib/api-client';
 import { createClient } from '@/lib/supabase/client';
+import { isValidReturnPath } from '@/lib/validate-return-path';
 
 const loginSchema = z.object({
   email: z.email({ error: 'Geçerli bir e-posta adresi girin' }),
@@ -33,8 +34,10 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get('next');
   const [generalError, setGeneralError] = useState('');
 
   const form = useForm<LoginFormValues>({
@@ -58,13 +61,20 @@ export default function LoginPage() {
       });
 
       router.refresh();
-      router.push('/admin/overview');
+      const destination = isValidReturnPath(nextPath)
+        ? nextPath
+        : '/admin/overview';
+      router.push(destination);
     } catch (err) {
       if (err instanceof ApiClientError) {
         if (err.status === 429) {
           setGeneralError('Çok fazla deneme. Lütfen 15 dakika bekleyin.');
         } else if (err.code === 'AUTH.INVALID_CREDENTIALS') {
           setGeneralError('E-posta veya şifre hatalı.');
+        } else if (err.status >= 500) {
+          setGeneralError(
+            'Şu anda giriş yapılamıyor. Lütfen daha sonra tekrar deneyin.',
+          );
         } else {
           setGeneralError(err.message);
         }
@@ -79,7 +89,9 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle className="text-xl">Giriş Yap</CardTitle>
         <CardDescription>
-          Hesabınıza giriş yapmak için bilgilerinizi girin
+          {isValidReturnPath(nextPath)
+            ? 'Devam etmek için tekrar giriş yapın'
+            : 'Hesabınıza giriş yapmak için bilgilerinizi girin'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -143,5 +155,13 @@ export default function LoginPage() {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
