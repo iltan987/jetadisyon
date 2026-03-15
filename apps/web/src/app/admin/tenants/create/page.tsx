@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { CheckIcon, CopyIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -28,6 +29,11 @@ import { Input } from '@repo/ui/components/ui/input';
 
 import { useAuth } from '@/hooks/use-auth';
 import { apiClient, ApiClientError } from '@/lib/api-client';
+import { queryKeys } from '@/lib/query-keys';
+import type {
+  CreateTenantResponse,
+  TenantWithOwner,
+} from '@repo/api/tenant.types';
 
 const createTenantSchema = z.object({
   businessName: z
@@ -53,22 +59,13 @@ const createTenantSchema = z.object({
 type CreateTenantFormInput = z.input<typeof createTenantSchema>;
 type CreateTenantFormOutput = z.infer<typeof createTenantSchema>;
 
-interface Credentials {
-  email: string;
-  temporaryPassword: string;
-}
-
-interface CreateTenantResponse {
-  data: {
-    tenant: { id: string; name: string };
-    credentials: Credentials;
-  };
-}
-
 export default function CreateTenantPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { session } = useAuth();
-  const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [credentials, setCredentials] = useState<
+    CreateTenantResponse['credentials'] | null
+  >(null);
   const [copied, setCopied] = useState<string | null>(null);
 
   const form = useForm<CreateTenantFormInput, unknown, CreateTenantFormOutput>({
@@ -88,7 +85,11 @@ export default function CreateTenantPage() {
         body: JSON.stringify(data),
         accessToken: session?.access_token,
       });
-      setCredentials(res.data.credentials);
+      queryClient.setQueryData<TenantWithOwner[]>(
+        queryKeys.tenants.all,
+        (prev) => (prev ? [...prev, res.tenant] : [res.tenant]),
+      );
+      setCredentials(res.credentials);
       toast.success('Restoran başarıyla oluşturuldu');
     } catch (err) {
       if (err instanceof ApiClientError) {

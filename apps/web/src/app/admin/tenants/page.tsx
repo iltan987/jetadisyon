@@ -39,9 +39,9 @@ export default function TenantsPage() {
   } = useQuery({
     queryKey: queryKeys.tenants.all,
     queryFn: () =>
-      apiClient<{ data: TenantWithOwner[] }>('/tenants', {
+      apiClient<TenantWithOwner[]>('/tenants', {
         accessToken: session!.access_token,
-      }).then((res) => res.data),
+      }),
     enabled: !!session?.access_token,
   });
 

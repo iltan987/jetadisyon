@@ -26,6 +26,10 @@ export class ApiClientError extends Error {
   }
 }
 
+interface ApiEnvelope<T> {
+  data: T;
+}
+
 export async function apiClient<T>(
   path: string,
   options: RequestInit & {
@@ -74,13 +78,14 @@ export async function apiClient<T>(
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as ApiEnvelope<T>;
+    const data = json.data;
 
     if (schema) {
-      return schema.parse(json) as T;
+      return schema.parse(data) as T;
     }
 
-    return json as T;
+    return data;
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiClientError(

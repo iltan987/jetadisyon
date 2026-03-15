@@ -49,7 +49,7 @@ function LoginForm() {
     setGeneralError('');
 
     try {
-      const { data } = await apiClient<{ data: LoginResponse }>('/auth/login', {
+      const data = await apiClient<LoginResponse>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(values),
       });
