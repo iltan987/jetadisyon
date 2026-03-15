@@ -62,13 +62,11 @@ export function TenantNav() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           {user && (
-            <span className="text-muted-foreground text-sm">
-              {user.email}
-            </span>
+            <span className="text-muted-foreground text-sm">{user.email}</span>
           )}
           <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOutIcon className="mr-1.5 h-4 w-4" />
-            Cikis
+            Çıkış
           </Button>
         </div>
       </div>
