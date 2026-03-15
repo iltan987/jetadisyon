@@ -2,7 +2,6 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { clientEnv } from '../env/client';
-import { isValidReturnPath } from '../validate-return-path';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -66,15 +65,10 @@ export async function updateSession(request: NextRequest) {
 
   // First-pass guard. Server components (layouts/pages) are the authoritative source.
 
-  // /login — only unauthenticated
+  // /login — let through unconditionally.
+  // The auth layout handles redirect-if-authenticated via getUser(),
+  // which also covers stale JWTs (deleted/banned user).
   if (pathname.startsWith('/login')) {
-    if (user) {
-      const next = request.nextUrl.searchParams.get('next');
-      if (isValidReturnPath(next)) {
-        return redirectTo(next);
-      }
-      return redirectTo('/');
-    }
     return supabaseResponse;
   }
 
@@ -92,24 +86,6 @@ export async function updateSession(request: NextRequest) {
   // All other routes — only authenticated
   if (!user) {
     return redirectToLogin();
-  }
-
-  // Forced password change detection (non-admin users only)
-  // getClaims() does NOT include user_metadata — must use getUser() for this check
-  const userRole = user.app_metadata?.user_role;
-  if (userRole !== 'admin') {
-    const {
-      data: { user: fullUser },
-    } = await supabase.auth.getUser();
-
-    if (fullUser?.user_metadata?.must_change_password === true) {
-      if (!pathname.startsWith('/change-password')) {
-        return redirectTo('/change-password');
-      }
-    } else if (pathname.startsWith('/change-password')) {
-      // Prevent accessing change-password when not required
-      return redirectTo('/dashboard');
-    }
   }
 
   return supabaseResponse;

@@ -49,6 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ? mapUser(session.user) : null);
+      setMustChangePassword(
+        session?.user?.user_metadata?.must_change_password === true,
+      );
       setIsLoading(false);
 
       if (event === 'SIGNED_OUT') {

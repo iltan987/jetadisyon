@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { createClient } from '@/lib/supabase/server';
+import { getClaims } from '@/lib/supabase/server';
 
 import { TenantNav } from './_components/tenant-nav';
 
@@ -9,13 +9,14 @@ export default async function TenantLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { claims } = await getClaims();
 
-  if (!user) {
+  if (!claims) {
     redirect('/login');
+  }
+
+  if (claims.must_change_password === true) {
+    redirect('/change-password');
   }
 
   return (

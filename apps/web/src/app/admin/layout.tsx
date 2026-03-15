@@ -7,7 +7,7 @@ import {
   SidebarTrigger,
 } from '@repo/ui/components/ui/sidebar';
 
-import { createClient } from '@/lib/supabase/server';
+import { getClaims } from '@/lib/supabase/server';
 
 import { AdminSidebar } from './_components/admin-sidebar';
 
@@ -16,21 +16,13 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { claims } = await getClaims();
 
-  if (!user) {
+  if (!claims) {
     redirect('/login');
   }
 
-  // Role is injected into JWT by custom_access_token_hook, not stored in raw_app_meta_data.
-  // Use getClaims() to read the actual JWT claims.
-  const { data } = await supabase.auth.getClaims();
-  const userRole = data?.claims?.app_metadata?.user_role;
-
-  if (userRole !== 'admin') {
+  if (claims.app_metadata?.user_role !== 'admin') {
     redirect('/');
   }
 

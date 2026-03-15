@@ -25,7 +25,10 @@ import { Input } from '@repo/ui/components/ui/input';
 
 import { useAuth } from '@/hooks/use-auth';
 import { apiClient, ApiClientError } from '@/lib/api-client';
+import { createClient } from '@/lib/supabase/client';
 
+// SYNC: Backend has a mirrored schema with English error messages
+// at apps/api/src/auth/dto/change-password.dto.ts
 const changePasswordSchema = z
   .object({
     currentPassword: z
@@ -70,6 +73,10 @@ export default function ChangePasswordPage() {
         body: JSON.stringify(values),
         accessToken: session?.access_token,
       });
+
+      // Refresh session to get a new JWT without must_change_password claim
+      const supabase = createClient();
+      await supabase.auth.refreshSession();
 
       setMustChangePassword(false);
       toast.success('Şifre başarıyla değiştirildi');

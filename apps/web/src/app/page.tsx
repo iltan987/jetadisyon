@@ -1,21 +1,15 @@
 import { redirect } from 'next/navigation';
 
-import { createClient } from '@/lib/supabase/server';
+import { getClaims } from '@/lib/supabase/server';
 
 export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { claims } = await getClaims();
 
-  if (!user) {
+  if (!claims) {
     redirect('/login');
   }
 
-  const { data } = await supabase.auth.getClaims();
-  const userRole = data?.claims.app_metadata?.user_role;
-
-  if (userRole === 'admin') {
+  if (claims.app_metadata?.user_role === 'admin') {
     redirect('/admin/overview');
   }
 
