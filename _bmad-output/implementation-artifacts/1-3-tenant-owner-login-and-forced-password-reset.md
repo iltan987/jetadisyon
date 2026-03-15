@@ -1,6 +1,6 @@
 # Story 1.3: Tenant Owner Login & Forced Password Reset
 
-Status: review
+Status: done
 
 ## Story
 
@@ -382,6 +382,7 @@ Claude Opus 4.6 (1M context)
 - `apps/api/src/auth/dto/change-password.dto.ts`
 - `apps/api/src/auth/auth.controller.spec.ts`
 - `apps/web/src/app/change-password/page.tsx`
+- `apps/web/src/app/change-password/layout.tsx`
 - `apps/web/src/app/(tenant)/layout.tsx`
 - `apps/web/src/app/(tenant)/dashboard/page.tsx`
 - `apps/web/src/app/(tenant)/_components/tenant-nav.tsx`
@@ -390,6 +391,7 @@ Claude Opus 4.6 (1M context)
 - `apps/api/src/auth/auth.service.ts`
 - `apps/api/src/auth/auth.controller.ts`
 - `apps/api/src/auth/auth.service.spec.ts`
+- `apps/api/src/common/guards/roles.guard.ts`
 - `apps/web/src/lib/supabase/proxy.ts`
 - `apps/web/src/providers/auth-provider.tsx`
 - `apps/web/src/app/(auth)/login/page.tsx`
@@ -399,3 +401,4 @@ Claude Opus 4.6 (1M context)
 ### Change Log
 
 - 2026-03-15: Story 1.3 implementation complete — forced password change flow, tenant dashboard, change-password endpoint
+- 2026-03-15: Code review complete — 10 issues found (3H/5M/2L), all HIGH and MEDIUM fixed: signOut now calls backend logout, controller tests expanded, forced password check moved from proxy.ts to layouts, Turkish chars fixed, email guard added, root page uses getClaims only
