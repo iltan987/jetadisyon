@@ -125,6 +125,8 @@ export class TenantsService {
             licenseStatus: tenant.license_status,
             createdAt: tenant.created_at,
             updatedAt: tenant.updated_at,
+            ownerName: dto.ownerFullName,
+            ownerId: authUserId,
           },
           credentials: {
             email: dto.ownerEmail,

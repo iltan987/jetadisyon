@@ -21,7 +21,7 @@ export interface CreateTenantRequest {
 }
 
 export interface CreateTenantResponse {
-  tenant: Tenant;
+  tenant: TenantWithOwner;
   credentials: {
     email: string;
     temporaryPassword: string;
