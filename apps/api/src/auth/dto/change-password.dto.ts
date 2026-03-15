@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+// SYNC: Frontend has a mirrored schema with Turkish error messages
+// at apps/web/src/app/change-password/page.tsx
 export const changePasswordSchema = z
   .object({
     currentPassword: z

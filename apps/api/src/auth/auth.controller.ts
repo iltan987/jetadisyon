@@ -1,4 +1,10 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { minutes, Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
 
@@ -42,7 +48,13 @@ export class AuthController {
     @CurrentUser() user: User,
     @Body(new ZodValidationPipe(changePasswordSchema)) dto: ChangePasswordDto,
   ) {
-    return this.authService.changePassword(user.id, user.email!, dto);
+    if (!user.email) {
+      throw new UnauthorizedException({
+        code: 'AUTH.USER_NOT_FOUND',
+        message: 'User email not available',
+      });
+    }
+    return this.authService.changePassword(user.id, user.email, dto);
   }
 
   @Get('me')

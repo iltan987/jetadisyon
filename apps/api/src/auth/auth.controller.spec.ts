@@ -1,8 +1,11 @@
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { type User } from '@supabase/supabase-js';
 
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { changePasswordSchema } from './dto/change-password.dto';
 
 const mockAuthService = {
   login: jest.fn(),
@@ -49,6 +52,77 @@ describe('AuthController', () => {
         dto,
       );
       expect(result).toEqual(expected);
+    });
+
+    it('should throw UnauthorizedException when user has no email', async () => {
+      const userWithoutEmail = {
+        id: 'user-id',
+        email: undefined,
+      } as unknown as User;
+
+      await expect(
+        controller.changePassword(userWithoutEmail, dto),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('changePassword DTO validation', () => {
+    const pipe = new ZodValidationPipe(changePasswordSchema);
+
+    it('should reject passwords shorter than 8 characters', () => {
+      expect(() =>
+        pipe.transform(
+          {
+            currentPassword: 'short',
+            newPassword: 'newpass456',
+            confirmPassword: 'newpass456',
+          },
+          { type: 'body' },
+        ),
+      ).toThrow(BadRequestException);
+    });
+
+    it('should reject mismatched passwords', () => {
+      expect(() =>
+        pipe.transform(
+          {
+            currentPassword: 'oldpass123',
+            newPassword: 'newpass456',
+            confirmPassword: 'different1',
+          },
+          { type: 'body' },
+        ),
+      ).toThrow(BadRequestException);
+    });
+
+    it('should reject same current and new password', () => {
+      expect(() =>
+        pipe.transform(
+          {
+            currentPassword: 'samepass123',
+            newPassword: 'samepass123',
+            confirmPassword: 'samepass123',
+          },
+          { type: 'body' },
+        ),
+      ).toThrow(BadRequestException);
+    });
+
+    it('should accept valid password change', () => {
+      const result = pipe.transform(
+        {
+          currentPassword: 'oldpass123',
+          newPassword: 'newpass456',
+          confirmPassword: 'newpass456',
+        },
+        { type: 'body' },
+      );
+
+      expect(result).toEqual({
+        currentPassword: 'oldpass123',
+        newPassword: 'newpass456',
+        confirmPassword: 'newpass456',
+      });
     });
   });
 
