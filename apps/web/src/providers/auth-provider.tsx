@@ -12,6 +12,7 @@ import {
 
 import type { AuthUser } from '@repo/api/auth.types';
 
+import { apiClient } from '@/lib/api-client';
 import { createClient } from '@/lib/supabase/client';
 import { isValidReturnPath } from '@/lib/validate-return-path';
 
@@ -83,10 +84,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const signOut = useCallback(async () => {
+    // Invalidate server-side session before clearing local state
+    if (session?.access_token) {
+      try {
+        await apiClient('/auth/logout', {
+          method: 'POST',
+          accessToken: session.access_token,
+        });
+      } catch {
+        // Continue with local signout even if server call fails
+      }
+    }
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-  }, [supabase]);
+  }, [supabase, session]);
 
   const value = useMemo(
     () => ({

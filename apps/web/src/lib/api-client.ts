@@ -1,6 +1,7 @@
 import type { ZodType } from 'zod';
 
 import { clientEnv } from './env/client';
+import { createClient } from './supabase/client';
 
 const API_BASE_URL = clientEnv.NEXT_PUBLIC_API_URL;
 
@@ -60,6 +61,12 @@ export async function apiClient<T>(
     });
 
     if (!response.ok) {
+      // Stale/invalid session — sign out to clear cookies and redirect to login
+      if (response.status === 401) {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      }
+
       let body: ApiErrorResponse;
       try {
         body = (await response.json()) as ApiErrorResponse;
