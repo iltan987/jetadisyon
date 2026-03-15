@@ -88,5 +88,20 @@ export async function updateSession(request: NextRequest) {
     return redirectToLogin();
   }
 
+  // Basic first-pass: admin should not access tenant routes
+  if (user.app_metadata?.user_role === 'admin') {
+    return redirectTo('/admin/overview');
+  }
+
+  // Basic first-pass: staff cannot access analytics or settings
+  if (user.app_metadata?.user_role === 'tenant_staff') {
+    if (pathname.startsWith('/analytics') || pathname.startsWith('/settings')) {
+      return redirectTo('/dashboard');
+    }
+  }
+
+  // Forward pathname to server components for authoritative route guards
+  supabaseResponse.headers.set('x-pathname', pathname);
+
   return supabaseResponse;
 }

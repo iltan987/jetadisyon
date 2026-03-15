@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -199,26 +198,15 @@ export class TenantsService {
     return { data: tenants };
   }
 
-  async findById(tenantId: string, currentUser: User) {
-    const client = this.supabaseService.getClient();
-
-    // Non-admin users must have a membership for the requested tenant
+  async findById(tenantId: string, currentUser: User, accessToken: string) {
     const userRole = currentUser.app_metadata.user_role;
-    if (userRole !== 'admin') {
-      const { data: membership } = await client
-        .from('tenant_memberships')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .eq('tenant_id', tenantId)
-        .maybeSingle();
 
-      if (!membership) {
-        throw new ForbiddenException({
-          code: 'AUTH.INSUFFICIENT_ROLE',
-          message: 'You do not have access to this tenant',
-        });
-      }
-    }
+    // Admin uses service-role client (cross-tenant access);
+    // non-admin uses user-scoped client (RLS enforces tenant isolation)
+    const client =
+      userRole === 'admin'
+        ? this.supabaseService.getClient()
+        : this.supabaseService.getClientForUser(accessToken);
 
     const { data, error } = await client
       .from('tenants')

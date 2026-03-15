@@ -15,6 +15,7 @@ describe('SupabaseService', () => {
             () => ({
               SUPABASE_URL: 'http://localhost:8000',
               SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+              SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
             }),
           ],
         }),
@@ -51,5 +52,20 @@ describe('SupabaseService', () => {
     const singletonClient = service.getClient();
     const authClient = service.createAuthClient();
     expect(authClient).not.toBe(singletonClient);
+  });
+
+  describe('getClientForUser', () => {
+    it('should return a client different from the service-role singleton', () => {
+      const userClient = service.getClientForUser('test-token');
+      const serviceClient = service.getClient();
+      expect(userClient).toBeDefined();
+      expect(userClient).not.toBe(serviceClient);
+    });
+
+    it('should return a new client on each call', () => {
+      const client1 = service.getClientForUser('token-1');
+      const client2 = service.getClientForUser('token-2');
+      expect(client1).not.toBe(client2);
+    });
   });
 });

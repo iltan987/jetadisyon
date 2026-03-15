@@ -54,6 +54,7 @@ export class SupabaseAuthGuard implements CanActivate {
       ...data.user,
       app_metadata: claimsData?.claims?.app_metadata ?? data.user.app_metadata,
     };
+    request.accessToken = token;
     return true;
   }
 }

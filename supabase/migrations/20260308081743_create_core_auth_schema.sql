@@ -189,9 +189,13 @@ REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook FROM authenticated, a
 
 GRANT ALL ON TABLE public.profiles TO supabase_auth_admin;
 REVOKE ALL ON TABLE public.profiles FROM authenticated, anon, public;
+GRANT SELECT ON TABLE public.profiles TO authenticated;
 
 GRANT ALL ON TABLE public.tenant_memberships TO supabase_auth_admin;
 REVOKE ALL ON TABLE public.tenant_memberships FROM authenticated, anon, public;
+GRANT SELECT ON TABLE public.tenant_memberships TO authenticated;
+
+GRANT SELECT ON TABLE public.audit_logs TO authenticated;
 
 -- Allow auth hook to read profiles through RLS
 CREATE POLICY policy_profiles_auth_admin_read ON public.profiles

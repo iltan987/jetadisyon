@@ -65,19 +65,21 @@ describe('TenantsController', () => {
   });
 
   describe('findById', () => {
-    it('should call findById with tenantId and user', async () => {
+    it('should call findById with tenantId, user, and accessToken', async () => {
       const user = {
         id: 'admin-uuid',
         app_metadata: { user_role: 'admin' },
       } as unknown as User;
+      const accessToken = 'mock-token';
       const expected = { data: { id: 'tenant-1', name: 'Restaurant A' } };
       mockTenantsService.findById.mockResolvedValue(expected);
 
-      const result = await controller.findById('tenant-1', user);
+      const result = await controller.findById('tenant-1', user, accessToken);
 
       expect(mockTenantsService.findById).toHaveBeenCalledWith(
         'tenant-1',
         user,
+        accessToken,
       );
       expect(result).toEqual(expected);
     });

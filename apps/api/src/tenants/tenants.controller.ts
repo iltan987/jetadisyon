@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import type { User } from '@supabase/supabase-js';
 
+import { AccessToken } from '../common/decorators/access-token.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -39,7 +40,8 @@ export class TenantsController {
   async findById(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @CurrentUser() user: User,
+    @AccessToken() accessToken: string,
   ) {
-    return this.tenantsService.findById(tenantId, user);
+    return this.tenantsService.findById(tenantId, user, accessToken);
   }
 }
