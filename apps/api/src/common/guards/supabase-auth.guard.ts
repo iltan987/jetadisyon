@@ -35,9 +35,9 @@ export class SupabaseAuthGuard implements CanActivate {
     }
 
     const token = authHeader.substring(7);
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .auth.getUser(token);
+    const client = this.supabaseService.getClient();
+
+    const { data, error } = await client.auth.getUser(token);
 
     if (error || !data.user) {
       throw new UnauthorizedException({
@@ -46,34 +46,14 @@ export class SupabaseAuthGuard implements CanActivate {
       });
     }
 
-    // getUser() validates the token against DB but returns the stored user data.
-    // custom_access_token_hook injects user_role/tenant_id into JWT claims only,
-    // so decode the already-validated JWT to get the hook-injected app_metadata.
-    const claims = this.decodeJwtPayload(token);
+    // getUser() returns stored user data where app_metadata lacks the
+    // hook-injected user_role/tenant_id. Read them from the verified JWT claims.
+    const { data: claimsData } = await client.auth.getClaims(token);
 
     request.user = {
       ...data.user,
-      app_metadata: claims.app_metadata ?? data.user.app_metadata,
+      app_metadata: claimsData?.claims?.app_metadata ?? data.user.app_metadata,
     };
     return true;
-  }
-
-  private decodeJwtPayload(token: string): Record<string, unknown> {
-    try {
-      const [, payload] = token.split('.');
-      if (!payload) {
-        throw new UnauthorizedException({
-          code: 'AUTH.TOKEN_INVALID',
-          message: 'Invalid or expired token',
-        });
-      }
-      return JSON.parse(Buffer.from(payload, 'base64url').toString());
-    } catch (error) {
-      if (error instanceof UnauthorizedException) throw error;
-      throw new UnauthorizedException({
-        code: 'AUTH.TOKEN_INVALID',
-        message: 'Invalid or expired token',
-      });
-    }
   }
 }

@@ -9,7 +9,7 @@ describe('SupabaseAuthGuard', () => {
   let reflector: Reflector;
 
   const mockSupabaseClient = {
-    auth: { getUser: jest.fn() },
+    auth: { getUser: jest.fn(), getClaims: jest.fn() },
   };
 
   const mockSupabaseService = {
@@ -65,47 +65,28 @@ describe('SupabaseAuthGuard', () => {
     );
   });
 
-  it('should set request.user with JWT app_metadata for valid token', async () => {
-    const jwtAppMetadata = { user_role: 'admin', tenant_id: null };
+  it('should set request.user with JWT claims app_metadata for valid token', async () => {
     const dbUser = {
       id: 'user-id',
       email: 'test@test.com',
       app_metadata: { provider: 'email', providers: ['email'] },
     };
-
-    // Build a fake JWT with the hook-injected app_metadata
-    const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString(
-      'base64url',
-    );
-    const payload = Buffer.from(
-      JSON.stringify({ sub: 'user-id', app_metadata: jwtAppMetadata }),
-    ).toString('base64url');
-    const fakeJwt = `${header}.${payload}.signature`;
+    const jwtAppMetadata = { user_role: 'admin', tenant_id: null };
 
     mockSupabaseClient.auth.getUser.mockResolvedValue({
       data: { user: dbUser },
       error: null,
     });
-
-    const context = createMockContext(`Bearer ${fakeJwt}`);
-    const request = context.switchToHttp().getRequest();
-
-    expect(await guard.canActivate(context)).toBe(true);
-    expect(request.user.app_metadata).toEqual(jwtAppMetadata);
-    expect(request.user.id).toBe('user-id');
-  });
-
-  it('should throw UnauthorizedException for malformed JWT payload', async () => {
-    const malformedJwt = 'header.!!!invalid-base64.signature';
-
-    mockSupabaseClient.auth.getUser.mockResolvedValue({
-      data: { user: { id: 'user-id', app_metadata: {} } },
+    mockSupabaseClient.auth.getClaims.mockResolvedValue({
+      data: { claims: { app_metadata: jwtAppMetadata } },
       error: null,
     });
 
-    const context = createMockContext(`Bearer ${malformedJwt}`);
-    await expect(guard.canActivate(context)).rejects.toThrow(
-      UnauthorizedException,
-    );
+    const context = createMockContext('Bearer valid-token');
+    const request = context.switchToHttp().getRequest();
+
+    expect(await guard.canActivate(context)).toBe(true);
+    expect(request.user.id).toBe('user-id');
+    expect(request.user.app_metadata).toEqual(jwtAppMetadata);
   });
 });
