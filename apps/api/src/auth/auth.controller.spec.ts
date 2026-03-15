@@ -41,7 +41,13 @@ describe('AuthController', () => {
     };
 
     it('should call authService.changePassword with correct args', async () => {
-      const expected = { data: { message: 'Password changed successfully' } };
+      const expected = {
+        data: {
+          message: 'Password changed successfully',
+          accessToken: 'token',
+          refreshToken: 'refresh',
+        },
+      };
       mockAuthService.changePassword.mockResolvedValue(expected);
 
       const result = await controller.changePassword(user, dto);

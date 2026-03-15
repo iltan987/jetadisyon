@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -109,17 +110,18 @@ export class AuthService {
       });
 
     if (signInError) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         code: 'AUTH.INVALID_CREDENTIALS',
         message: 'Current password is incorrect',
       });
     }
 
-    // Update password via admin API
+    // Update password and clear must_change_password flag atomically
     const { error: updateError } = await this.supabaseService
       .getClient()
       .auth.admin.updateUserById(userId, {
         password: dto.newPassword,
+        user_metadata: { must_change_password: null },
       });
 
     if (updateError) {
@@ -129,23 +131,32 @@ export class AuthService {
       });
     }
 
-    // Clear must_change_password flag (setting to null deletes the key)
-    const { error: metadataError } = await this.supabaseService
-      .getClient()
-      .auth.admin.updateUserById(userId, {
-        user_metadata: { must_change_password: null },
-      });
+    // Re-authenticate with new password to get fresh tokens (old refresh token
+    // is invalidated by the password change, so the client can't refreshSession)
+    const { data: newSession, error: reAuthError } = await this.supabaseService
+      .createAuthClient()
+      .auth.signInWithPassword({ email, password: dto.newPassword });
 
-    if (metadataError) {
-      this.logger.warn(
-        { userId },
-        'Password updated but failed to clear must_change_password flag',
-      );
+    if (reAuthError || !newSession.session) {
+      this.logger.warn({ userId }, 'Password changed but re-auth failed');
+      return {
+        data: {
+          message: 'Password changed successfully',
+          accessToken: null,
+          refreshToken: null,
+        },
+      };
     }
 
     this.logger.info({ userId }, 'Password changed successfully');
 
-    return { data: { message: 'Password changed successfully' } };
+    return {
+      data: {
+        message: 'Password changed successfully',
+        accessToken: newSession.session.access_token,
+        refreshToken: newSession.session.refresh_token,
+      },
+    };
   }
 
   async getMe(userId: string) {

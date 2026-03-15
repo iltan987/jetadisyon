@@ -402,3 +402,4 @@ Claude Opus 4.6 (1M context)
 
 - 2026-03-15: Story 1.3 implementation complete — forced password change flow, tenant dashboard, change-password endpoint
 - 2026-03-15: Code review complete — 10 issues found (3H/5M/2L), all HIGH and MEDIUM fixed: signOut now calls backend logout, controller tests expanded, forced password check moved from proxy.ts to layouts, Turkish chars fixed, email guard added, root page uses getClaims only
+- 2026-03-15: Full project code review — 13 issues found (4H/5M/4L), all HIGH and MEDIUM fixed: atomic password+flag update, wrong-password returns 400 not 401 (prevents auto-signout), router.refresh before navigation after password change, rate-limit on change-password endpoint, session ref in signOut, import sort fix, tenant owner mapping extracted to helper

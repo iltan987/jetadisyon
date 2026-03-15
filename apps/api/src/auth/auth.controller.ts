@@ -44,6 +44,7 @@ export class AuthController {
 
   @Post('change-password')
   @Roles('tenant_owner', 'tenant_staff')
+  @Throttle({ default: { limit: 5, ttl: minutes(15) } })
   async changePassword(
     @CurrentUser() user: User,
     @Body(new ZodValidationPipe(changePasswordSchema)) dto: ChangePasswordDto,

@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -39,6 +40,7 @@ function mapUser(user: User): AuthUser {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const sessionRef = useRef<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mustChangePassword, setMustChangePassword] = useState(false);
 
@@ -48,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      sessionRef.current = session;
       setSession(session);
       setUser(session?.user ? mapUser(session.user) : null);
       setMustChangePassword(
@@ -85,20 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     // Invalidate server-side session before clearing local state
-    if (session?.access_token) {
+    const token = sessionRef.current?.access_token;
+    if (token) {
       try {
         await apiClient('/auth/logout', {
           method: 'POST',
-          accessToken: session.access_token,
+          accessToken: token,
         });
       } catch {
         // Continue with local signout even if server call fails
       }
     }
     await supabase.auth.signOut();
+    sessionRef.current = null;
     setUser(null);
     setSession(null);
-  }, [supabase, session]);
+  }, [supabase]);
 
   const value = useMemo(
     () => ({

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -273,14 +274,26 @@ describe('AuthService', () => {
       confirmPassword: 'newpass456',
     };
 
-    it('should change password successfully', async () => {
-      mockAuthClient.auth.signInWithPassword.mockResolvedValue({
-        data: { session: {}, user: {} },
+    it('should change password and return fresh tokens', async () => {
+      mockAuthClient.auth.signInWithPassword
+        .mockResolvedValueOnce({
+          data: { session: {}, user: {} },
+          error: null,
+        }) // verify current password
+        .mockResolvedValueOnce({
+          data: {
+            session: {
+              access_token: 'new-access',
+              refresh_token: 'new-refresh',
+            },
+            user: {},
+          },
+          error: null,
+        }); // re-auth with new password
+      mockSupabaseClient.auth.admin.updateUserById.mockResolvedValue({
+        data: {},
         error: null,
       });
-      mockSupabaseClient.auth.admin.updateUserById
-        .mockResolvedValueOnce({ data: {}, error: null }) // password update
-        .mockResolvedValueOnce({ data: {}, error: null }); // flag clear
 
       const result = await service.changePassword(
         'user-id',
@@ -289,18 +302,17 @@ describe('AuthService', () => {
       );
 
       expect(result.data.message).toBe('Password changed successfully');
-      expect(mockSupabaseService.createAuthClient).toHaveBeenCalled();
-      expect(mockAuthClient.auth.signInWithPassword).toHaveBeenCalledWith({
-        email: 'owner@test.com',
-        password: 'oldpass123',
-      });
-      expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledWith(
-        'user-id',
-        { password: 'newpass456' },
+      expect(result.data.accessToken).toBe('new-access');
+      expect(result.data.refreshToken).toBe('new-refresh');
+      expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledTimes(
+        1,
       );
       expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledWith(
         'user-id',
-        { user_metadata: { must_change_password: null } },
+        {
+          password: 'newpass456',
+          user_metadata: { must_change_password: null },
+        },
       );
       expect(mockLogger.info).toHaveBeenCalledWith(
         { userId: 'user-id' },
@@ -308,7 +320,37 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw UnauthorizedException on wrong current password', async () => {
+    it('should return null tokens when re-auth fails after password change', async () => {
+      mockAuthClient.auth.signInWithPassword
+        .mockResolvedValueOnce({
+          data: { session: {}, user: {} },
+          error: null,
+        }) // verify current password
+        .mockResolvedValueOnce({
+          data: { session: null, user: null },
+          error: { message: 'Re-auth failed' },
+        }); // re-auth fails
+      mockSupabaseClient.auth.admin.updateUserById.mockResolvedValue({
+        data: {},
+        error: null,
+      });
+
+      const result = await service.changePassword(
+        'user-id',
+        'owner@test.com',
+        changePasswordDto,
+      );
+
+      expect(result.data.message).toBe('Password changed successfully');
+      expect(result.data.accessToken).toBeNull();
+      expect(result.data.refreshToken).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { userId: 'user-id' },
+        'Password changed but re-auth failed',
+      );
+    });
+
+    it('should throw BadRequestException on wrong current password', async () => {
       mockAuthClient.auth.signInWithPassword.mockResolvedValue({
         data: { session: null, user: null },
         error: { message: 'Invalid credentials' },
@@ -316,7 +358,7 @@ describe('AuthService', () => {
 
       await expect(
         service.changePassword('user-id', 'owner@test.com', changePasswordDto),
-      ).rejects.toThrow(UnauthorizedException);
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw InternalServerErrorException on update failure', async () => {
@@ -332,31 +374,6 @@ describe('AuthService', () => {
       await expect(
         service.changePassword('user-id', 'owner@test.com', changePasswordDto),
       ).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('should warn but not fail when flag clear fails', async () => {
-      mockAuthClient.auth.signInWithPassword.mockResolvedValue({
-        data: { session: {}, user: {} },
-        error: null,
-      });
-      mockSupabaseClient.auth.admin.updateUserById
-        .mockResolvedValueOnce({ data: {}, error: null }) // password update succeeds
-        .mockResolvedValueOnce({
-          data: null,
-          error: { message: 'Metadata update failed' },
-        }); // flag clear fails
-
-      const result = await service.changePassword(
-        'user-id',
-        'owner@test.com',
-        changePasswordDto,
-      );
-
-      expect(result.data.message).toBe('Password changed successfully');
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        { userId: 'user-id' },
-        'Password updated but failed to clear must_change_password flag',
-      );
     });
   });
 });

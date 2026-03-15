@@ -12,6 +12,20 @@ import { PinoLogger } from 'nestjs-pino';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 
+interface TenantRow {
+  id: string;
+  name: string;
+  contact_phone: string | null;
+  status: string;
+  license_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface TenantMembershipJoin {
+  profiles: { id: string; full_name: string; role: string } | null;
+}
+
 @Injectable()
 export class TenantsService {
   constructor(
@@ -175,34 +189,12 @@ export class TenantsService {
       });
     }
 
-    const tenants = (data ?? []).map((t) => {
-      const ownerMembership = (t.tenant_memberships ?? []).find(
-        (tm: { profiles: { role: string } | null }) =>
-          tm.profiles?.role === 'tenant_owner',
-      );
-      const ownerProfile = (
-        ownerMembership as
-          | {
-              profiles: {
-                id: string;
-                full_name: string;
-                role: string;
-              } | null;
-            }
-          | undefined
-      )?.profiles;
-      return {
-        id: t.id,
-        name: t.name,
-        contactPhone: t.contact_phone,
-        status: t.status,
-        licenseStatus: t.license_status,
-        createdAt: t.created_at,
-        updatedAt: t.updated_at,
-        ownerName: ownerProfile?.full_name ?? null,
-        ownerId: ownerProfile?.id ?? null,
-      };
-    });
+    const tenants = (data ?? []).map((t) =>
+      this.mapTenantWithOwner(
+        t as TenantRow,
+        t.tenant_memberships as TenantMembershipJoin[],
+      ),
+    );
 
     return { data: tenants };
   }
@@ -252,28 +244,32 @@ export class TenantsService {
       });
     }
 
-    const ownerMembership = data.tenant_memberships?.find(
-      (tm: { profiles: { role: string } | null }) =>
-        tm.profiles?.role === 'tenant_owner',
-    );
-    const ownerProfile = (
-      ownerMembership as
-        | { profiles: { id: string; full_name: string; role: string } | null }
-        | undefined
+    return {
+      data: this.mapTenantWithOwner(
+        data as TenantRow,
+        data.tenant_memberships as TenantMembershipJoin[],
+      ),
+    };
+  }
+
+  private mapTenantWithOwner(
+    tenant: TenantRow,
+    memberships?: TenantMembershipJoin[],
+  ) {
+    const ownerProfile = (memberships ?? []).find(
+      (tm) => tm.profiles?.role === 'tenant_owner',
     )?.profiles;
 
     return {
-      data: {
-        id: data.id,
-        name: data.name,
-        contactPhone: data.contact_phone,
-        status: data.status,
-        licenseStatus: data.license_status,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        ownerName: ownerProfile?.full_name ?? null,
-        ownerId: ownerProfile?.id ?? null,
-      },
+      id: tenant.id,
+      name: tenant.name,
+      contactPhone: tenant.contact_phone,
+      status: tenant.status,
+      licenseStatus: tenant.license_status,
+      createdAt: tenant.created_at,
+      updatedAt: tenant.updated_at,
+      ownerName: ownerProfile?.full_name ?? null,
+      ownerId: ownerProfile?.id ?? null,
     };
   }
 

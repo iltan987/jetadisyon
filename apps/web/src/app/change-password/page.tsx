@@ -68,18 +68,30 @@ export default function ChangePasswordPage() {
     setGeneralError('');
 
     try {
-      await apiClient('/auth/change-password', {
+      const data = await apiClient<{
+        message: string;
+        accessToken: string | null;
+        refreshToken: string | null;
+      }>('/auth/change-password', {
         method: 'POST',
         body: JSON.stringify(values),
         accessToken: session?.access_token,
       });
 
-      // Refresh session to get a new JWT without must_change_password claim
-      const supabase = createClient();
-      await supabase.auth.refreshSession();
+      // Set fresh session from backend (old refresh token is invalidated
+      // by the password change, so refreshSession() would fail and trigger
+      // a SIGNED_OUT event)
+      if (data.accessToken && data.refreshToken) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.accessToken,
+          refresh_token: data.refreshToken,
+        });
+      }
 
       setMustChangePassword(false);
       toast.success('Şifre başarıyla değiştirildi');
+      router.refresh();
       router.push('/dashboard');
     } catch (err) {
       if (err instanceof ApiClientError) {

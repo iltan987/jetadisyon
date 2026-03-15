@@ -1,15 +1,19 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { CheckIcon, CopyIcon } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import type {
+  CreateTenantResponse,
+  TenantWithOwner,
+} from '@repo/api/tenant.types';
 import { Button } from '@repo/ui/components/ui/button';
 import {
   Card,
@@ -30,10 +34,6 @@ import { Input } from '@repo/ui/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 import { apiClient, ApiClientError } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
-import type {
-  CreateTenantResponse,
-  TenantWithOwner,
-} from '@repo/api/tenant.types';
 
 const createTenantSchema = z.object({
   businessName: z
