@@ -15,7 +15,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@repo/ui": "workspace:*",
     "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "^2.99.1",
+    "@supabase/supabase-js": "^2.99.2",
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tanstack/react-query": "^5.90.21",
     "libphonenumber-js": "^1.12.40",
@@ -37,7 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "shadcn": "^4.0.7",
+    "shadcn": "^4.0.8",
     "typescript": "^5"
   }
 }
