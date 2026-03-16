@@ -72,6 +72,15 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Invitation paths — unauthenticated access required
+  // (user has no session when clicking the email link)
+  if (
+    pathname.startsWith('/auth/accept-invite') ||
+    pathname.startsWith('/auth/invite-expired')
+  ) {
+    return supabaseResponse;
+  }
+
   // /admin — only authenticated admin
   if (pathname.startsWith('/admin')) {
     if (!user) {
@@ -86,6 +95,16 @@ export async function updateSession(request: NextRequest) {
   // All other routes — only authenticated
   if (!user) {
     return redirectToLogin();
+  }
+
+  // First-pass guard: invited users must set their password
+  if (user.invitation_pending === true && pathname !== '/set-password') {
+    return redirectTo('/set-password');
+  }
+
+  // First-pass guard: users with temporary password must change it
+  if (user.must_change_password === true && pathname !== '/change-password') {
+    return redirectTo('/change-password');
   }
 
   // Basic first-pass: admin should not access tenant routes

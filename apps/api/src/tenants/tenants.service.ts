@@ -1,13 +1,15 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { User } from '@supabase/supabase-js';
-import { randomBytes } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
 
+import { MailService } from '../mail/mail.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 
@@ -27,16 +29,20 @@ interface TenantMembershipJoin {
 
 @Injectable()
 export class TenantsService {
+  private readonly appUrl: string;
+
   constructor(
     private readonly supabaseService: SupabaseService,
+    private readonly mailService: MailService,
+    private readonly config: ConfigService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(TenantsService.name);
+    this.appUrl = this.config.get<string>('APP_URL', 'http://localhost:3001');
   }
 
   async createTenant(dto: CreateTenantDto, adminUserId: string) {
     const client = this.supabaseService.getClient();
-    const tempPassword = randomBytes(12).toString('base64url');
 
     let tenantId: string | undefined;
     let authUserId: string | undefined;
@@ -57,19 +63,20 @@ export class TenantsService {
       }
       tenantId = tenant.id;
 
-      // Step 2: Create Supabase Auth user
-      const { data: authData, error: authError } =
-        await client.auth.admin.createUser({
+      // Step 2: Generate invitation link (no password set, no email sent by Supabase)
+      const { data: linkData, error: linkError } =
+        await client.auth.admin.generateLink({
+          type: 'invite',
           email: dto.ownerEmail,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { must_change_password: true },
+          options: {
+            data: { invitation_pending: true },
+          },
         });
 
-      if (authError || !authData.user) {
+      if (linkError || !linkData.user) {
         if (
-          authError?.code === 'email_exists' ||
-          authError?.code === 'user_already_exists'
+          linkError?.code === 'email_exists' ||
+          linkError?.code === 'user_already_exists'
         ) {
           throw new ConflictException({
             code: 'TENANT.DUPLICATE_EMAIL',
@@ -81,7 +88,8 @@ export class TenantsService {
           message: 'Failed to create owner account',
         });
       }
-      authUserId = authData.user.id;
+      authUserId = linkData.user.id;
+      const hashedToken = linkData.properties.hashed_token;
 
       // Step 3: Insert profiles entry
       const { error: profileError } = await client.from('profiles').insert({
@@ -128,6 +136,24 @@ export class TenantsService {
         );
       }
 
+      // Step 6: Send invitation email via Nodemailer (best-effort — tenant is
+      // already created, admin can resend if email delivery fails)
+      const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${hashedToken}&type=invite`;
+      let emailSent = false;
+      try {
+        await this.mailService.sendInvitationEmail(
+          dto.ownerEmail,
+          inviteLink,
+          dto.businessName,
+        );
+        emailSent = true;
+      } catch (emailError) {
+        this.logger.error(
+          { emailError, email: dto.ownerEmail, tenantId },
+          'Failed to send invitation email — tenant created, admin can resend',
+        );
+      }
+
       return {
         data: {
           tenant: {
@@ -141,9 +167,9 @@ export class TenantsService {
             ownerName: dto.ownerFullName,
             ownerId: authUserId,
           },
-          credentials: {
+          invitation: {
             email: dto.ownerEmail,
-            temporaryPassword: tempPassword,
+            sent: emailSent,
           },
         },
       };
@@ -237,6 +263,106 @@ export class TenantsService {
         data as TenantRow,
         data.tenant_memberships as TenantMembershipJoin[],
       ),
+    };
+  }
+
+  async resendInvitation(tenantId: string) {
+    const client = this.supabaseService.getClient();
+
+    // Look up tenant name
+    const { data: tenant, error: tenantError } = await client
+      .from('tenants')
+      .select('name')
+      .eq('id', tenantId)
+      .single()
+      .overrideTypes<{ name: string }>();
+
+    if (tenantError || !tenant) {
+      throw new NotFoundException({
+        code: 'TENANT.NOT_FOUND',
+        message: 'Tenant not found',
+      });
+    }
+
+    // Look up tenant owner (filter by role — future staff members won't match)
+    const { data: membership, error: membershipError } = await client
+      .from('tenant_memberships')
+      .select('user_id, profiles!inner(role)')
+      .eq('tenant_id', tenantId)
+      .eq('profiles.role', 'tenant_owner')
+      .single()
+      .overrideTypes<{ user_id: string }>();
+
+    if (membershipError || !membership) {
+      throw new NotFoundException({
+        code: 'TENANT.NOT_FOUND',
+        message: 'Tenant owner not found',
+      });
+    }
+
+    const ownerId = membership.user_id;
+    const tenantName = tenant.name;
+
+    // Get user metadata to verify invitation is pending
+    const { data: userData, error: userError } =
+      await client.auth.admin.getUserById(ownerId);
+
+    if (userError || !userData.user) {
+      throw new NotFoundException({
+        code: 'TENANT.NOT_FOUND',
+        message: 'Tenant owner not found',
+      });
+    }
+
+    const ownerEmail = userData.user.email;
+    if (!ownerEmail) {
+      throw new InternalServerErrorException({
+        code: 'TENANT.RESEND_FAILED',
+        message: 'Owner email not available',
+      });
+    }
+
+    if (userData.user.user_metadata?.invitation_pending !== true) {
+      throw new BadRequestException({
+        code: 'TENANT.INVITATION_NOT_PENDING',
+        message: 'Owner has already accepted the invitation',
+      });
+    }
+
+    // Generate fresh invitation link
+    const { data: linkData, error: linkError } =
+      await client.auth.admin.generateLink({
+        type: 'invite',
+        email: ownerEmail,
+        options: {
+          data: { invitation_pending: true },
+        },
+      });
+
+    if (linkError || !linkData.properties) {
+      throw new InternalServerErrorException({
+        code: 'TENANT.RESEND_FAILED',
+        message: 'Failed to generate new invitation link',
+      });
+    }
+
+    const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${linkData.properties.hashed_token}&type=invite`;
+    await this.mailService.sendInvitationEmail(
+      ownerEmail,
+      inviteLink,
+      tenantName,
+    );
+
+    this.logger.info(
+      { tenantId, email: ownerEmail },
+      'Invitation email resent',
+    );
+
+    return {
+      data: {
+        email: ownerEmail,
+        sent: true,
+      },
     };
   }
 

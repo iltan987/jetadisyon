@@ -18,6 +18,10 @@ export default async function TenantLayout({
     redirect('/login');
   }
 
+  if (claims.invitation_pending === true) {
+    redirect('/set-password');
+  }
+
   if (claims.must_change_password === true) {
     redirect('/change-password');
   }

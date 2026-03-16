@@ -8,6 +8,7 @@ const mockTenantsService = {
   createTenant: jest.fn(),
   findAll: jest.fn(),
   findById: jest.fn(),
+  resendInvitation: jest.fn(),
 };
 
 describe('TenantsController', () => {
@@ -37,7 +38,7 @@ describe('TenantsController', () => {
       const expected = {
         data: {
           tenant: { id: 'tenant-uuid', name: 'Test Restaurant' },
-          credentials: { email: 'john@example.com', temporaryPassword: 'abc' },
+          invitation: { email: 'john@example.com', sent: true },
         },
       };
 
@@ -80,6 +81,22 @@ describe('TenantsController', () => {
         'tenant-1',
         user,
         accessToken,
+      );
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe('resendInvitation', () => {
+    it('should call resendInvitation with tenantId', async () => {
+      const expected = {
+        data: { email: 'owner@test.com', sent: true },
+      };
+      mockTenantsService.resendInvitation.mockResolvedValue(expected);
+
+      const result = await controller.resendInvitation('tenant-uuid');
+
+      expect(mockTenantsService.resendInvitation).toHaveBeenCalledWith(
+        'tenant-uuid',
       );
       expect(result).toEqual(expected);
     });

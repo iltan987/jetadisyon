@@ -1,12 +1,15 @@
 import {
+  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { User } from '@supabase/supabase-js';
 import { PinoLogger } from 'nestjs-pino';
 
+import { MailService } from '../mail/mail.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { TenantsService } from './tenants.service';
 
@@ -14,8 +17,9 @@ const mockSupabaseClient = {
   from: jest.fn(),
   auth: {
     admin: {
-      createUser: jest.fn(),
+      generateLink: jest.fn(),
       deleteUser: jest.fn(),
+      getUserById: jest.fn(),
     },
   },
 };
@@ -29,10 +33,15 @@ const mockSupabaseService = {
   getClientForUser: jest.fn(() => mockUserScopedClient),
 };
 
+const mockMailService = {
+  sendInvitationEmail: jest.fn().mockResolvedValue(undefined),
+};
+
 const mockLogger = {
   setContext: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
+  info: jest.fn(),
 };
 
 describe('TenantsService', () => {
@@ -43,6 +52,16 @@ describe('TenantsService', () => {
       providers: [
         TenantsService,
         { provide: SupabaseService, useValue: mockSupabaseService },
+        { provide: MailService, useValue: mockMailService },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string, defaultVal: unknown) => {
+              if (key === 'APP_URL') return 'http://localhost:3001';
+              return defaultVal;
+            }),
+          },
+        },
         { provide: PinoLogger, useValue: mockLogger },
       ],
     }).compile();
@@ -61,7 +80,7 @@ describe('TenantsService', () => {
     };
     const adminUserId = 'admin-uuid';
 
-    it('should create tenant with owner account successfully', async () => {
+    it('should create tenant with invitation email successfully', async () => {
       const tenantRow = {
         id: 'tenant-uuid',
         name: 'Test Restaurant',
@@ -72,7 +91,6 @@ describe('TenantsService', () => {
         updated_at: '2026-01-01T00:00:00Z',
       };
 
-      // Mock chain: from('tenants').insert().select().single()
       mockSupabaseClient.from.mockImplementation((table: string) => {
         if (table === 'tenants') {
           return {
@@ -106,8 +124,11 @@ describe('TenantsService', () => {
         return {};
       });
 
-      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
-        data: { user: { id: 'owner-uuid' } },
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: {
+          user: { id: 'owner-uuid' },
+          properties: { hashed_token: 'abc123' },
+        },
         error: null,
       });
 
@@ -115,10 +136,76 @@ describe('TenantsService', () => {
 
       expect(result.data.tenant.id).toBe('tenant-uuid');
       expect(result.data.tenant.name).toBe('Test Restaurant');
-      expect(result.data.credentials.email).toBe('john@example.com');
-      expect(result.data.credentials.temporaryPassword).toBeDefined();
-      expect(result.data.credentials.temporaryPassword.length).toBeGreaterThan(
-        0,
+      expect(result.data.invitation.email).toBe('john@example.com');
+      expect(result.data.invitation.sent).toBe(true);
+      expect(mockMailService.sendInvitationEmail).toHaveBeenCalledWith(
+        'john@example.com',
+        'http://localhost:3001/auth/accept-invite?token_hash=abc123&type=invite',
+        'Test Restaurant',
+      );
+    });
+
+    it('should return sent: false when email sending fails (tenant still created)', async () => {
+      const tenantRow = {
+        id: 'tenant-uuid',
+        name: 'Test Restaurant',
+        contact_phone: '+905551234567',
+        status: 'active',
+        license_status: 'trial',
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+      };
+
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenants') {
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest
+                  .fn()
+                  .mockResolvedValue({ data: tenantRow, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'profiles') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        if (table === 'tenant_memberships') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        if (table === 'audit_logs') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return {};
+      });
+
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: {
+          user: { id: 'owner-uuid' },
+          properties: { hashed_token: 'abc123' },
+        },
+        error: null,
+      });
+
+      mockMailService.sendInvitationEmail.mockRejectedValueOnce(
+        new Error('SMTP connection refused'),
+      );
+
+      const result = await service.createTenant(dto, adminUserId);
+
+      expect(result.data.tenant.id).toBe('tenant-uuid');
+      expect(result.data.invitation.email).toBe('john@example.com');
+      expect(result.data.invitation.sent).toBe(false);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'john@example.com' }),
+        expect.stringContaining('Failed to send invitation email'),
       );
     });
 
@@ -150,8 +237,8 @@ describe('TenantsService', () => {
         return { insert: jest.fn().mockResolvedValue({ error: null }) };
       });
 
-      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
-        data: { user: null },
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: { user: null, properties: null },
         error: {
           message: 'A user with this email address has already been registered',
           code: 'email_exists',
@@ -220,8 +307,11 @@ describe('TenantsService', () => {
         return { insert: jest.fn().mockResolvedValue({ error: null }) };
       });
 
-      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
-        data: { user: { id: 'owner-uuid' } },
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: {
+          user: { id: 'owner-uuid' },
+          properties: { hashed_token: 'abc123' },
+        },
         error: null,
       });
       mockSupabaseClient.auth.admin.deleteUser.mockResolvedValue({
@@ -232,7 +322,6 @@ describe('TenantsService', () => {
         InternalServerErrorException,
       );
 
-      // Verify cleanup was called
       expect(mockSupabaseClient.auth.admin.deleteUser).toHaveBeenCalledWith(
         'owner-uuid',
       );
@@ -275,8 +364,11 @@ describe('TenantsService', () => {
         return { insert: jest.fn().mockResolvedValue({ error: null }) };
       });
 
-      mockSupabaseClient.auth.admin.createUser.mockResolvedValue({
-        data: { user: { id: 'owner-uuid' } },
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: {
+          user: { id: 'owner-uuid' },
+          properties: { hashed_token: 'abc123' },
+        },
         error: null,
       });
       mockSupabaseClient.auth.admin.deleteUser.mockRejectedValue(
@@ -287,12 +379,113 @@ describe('TenantsService', () => {
         InternalServerErrorException,
       );
 
-      // Verify both cleanup steps were attempted
       expect(mockSupabaseClient.auth.admin.deleteUser).toHaveBeenCalledWith(
         'owner-uuid',
       );
       expect(deleteFn).toHaveBeenCalled();
       expect(deleteEq).toHaveBeenCalledWith('id', 'tenant-uuid');
+    });
+  });
+
+  describe('resendInvitation', () => {
+    const mockSelectEqSingle = (data: unknown) => {
+      const result = Promise.resolve({
+        data,
+        error: data ? null : { message: 'Not found' },
+      });
+      const builder = Object.assign(result, {
+        overrideTypes: jest.fn().mockReturnValue(result),
+      });
+      const eqFn = jest.fn().mockReturnValue({
+        single: jest.fn().mockReturnValue(builder),
+      });
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            // Support chained .eq() for the profiles.role filter
+            eq: eqFn,
+            single: jest.fn().mockReturnValue(builder),
+          }),
+        }),
+      };
+    };
+
+    it('should resend invitation for pending owner', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenants') {
+          return mockSelectEqSingle({ name: 'Test Restaurant' });
+        }
+        if (table === 'tenant_memberships') {
+          return mockSelectEqSingle({ user_id: 'owner-uuid' });
+        }
+        return {};
+      });
+
+      mockSupabaseClient.auth.admin.getUserById.mockResolvedValue({
+        data: {
+          user: {
+            id: 'owner-uuid',
+            email: 'owner@test.com',
+            user_metadata: { invitation_pending: true },
+          },
+        },
+        error: null,
+      });
+
+      mockSupabaseClient.auth.admin.generateLink.mockResolvedValue({
+        data: {
+          user: { id: 'owner-uuid' },
+          properties: { hashed_token: 'fresh-token' },
+        },
+        error: null,
+      });
+
+      const result = await service.resendInvitation('tenant-uuid');
+
+      expect(result.data.email).toBe('owner@test.com');
+      expect(result.data.sent).toBe(true);
+      expect(mockMailService.sendInvitationEmail).toHaveBeenCalledWith(
+        'owner@test.com',
+        'http://localhost:3001/auth/accept-invite?token_hash=fresh-token&type=invite',
+        'Test Restaurant',
+      );
+    });
+
+    it('should throw BadRequestException when invitation is not pending', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'tenants') {
+          return mockSelectEqSingle({ name: 'Test Restaurant' });
+        }
+        if (table === 'tenant_memberships') {
+          return mockSelectEqSingle({ user_id: 'owner-uuid' });
+        }
+        return {};
+      });
+
+      mockSupabaseClient.auth.admin.getUserById.mockResolvedValue({
+        data: {
+          user: {
+            id: 'owner-uuid',
+            email: 'owner@test.com',
+            user_metadata: {},
+          },
+        },
+        error: null,
+      });
+
+      await expect(service.resendInvitation('tenant-uuid')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException when tenant not found', async () => {
+      mockSupabaseClient.from.mockImplementation(() =>
+        mockSelectEqSingle(null),
+      );
+
+      await expect(service.resendInvitation('bad-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

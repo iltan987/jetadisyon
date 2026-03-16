@@ -1,0 +1,24 @@
+{
+  "name": "@repo/emails",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist node_modules .turbo"
+  },
+  "main": "./dist/invitation.js",
+  "types": "./dist/invitation.d.ts",
+  "exports": {
+    "./invitation": "./dist/invitation.js"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.9",
+    "react": "19.2.3",
+    "react-email": "^5.2.9"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

@@ -8,6 +8,10 @@ export const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:3001'),
   THROTTLE_TTL: z.coerce.number().default(60),
   THROTTLE_LIMIT: z.coerce.number().default(100),
+  APP_URL: z.string().default('http://localhost:3001'),
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().default(54325),
+  SMTP_FROM: z.string().default('noreply@jetadisyon.local'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

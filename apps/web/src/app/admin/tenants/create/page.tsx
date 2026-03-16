@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { isValidPhoneNumber } from 'libphonenumber-js';
-import { CheckIcon, CopyIcon } from 'lucide-react';
+import { MailIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -63,10 +63,11 @@ export default function CreateTenantPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const [credentials, setCredentials] = useState<
-    CreateTenantResponse['credentials'] | null
-  >(null);
-  const [copied, setCopied] = useState<string | null>(null);
+  const [createdTenant, setCreatedTenant] = useState<{
+    tenantId: string;
+    email: string;
+  } | null>(null);
+  const [resending, setResending] = useState(false);
 
   const form = useForm<CreateTenantFormInput, unknown, CreateTenantFormOutput>({
     resolver: zodResolver(createTenantSchema),
@@ -89,8 +90,17 @@ export default function CreateTenantPage() {
         queryKeys.tenants.all,
         (prev) => (prev ? [...prev, res.tenant] : [res.tenant]),
       );
-      setCredentials(res.credentials);
-      toast.success('Restoran başarıyla oluşturuldu');
+      setCreatedTenant({
+        tenantId: res.tenant.id,
+        email: res.invitation.email,
+      });
+      if (res.invitation.sent) {
+        toast.success('Restoran başarıyla oluşturuldu');
+      } else {
+        toast.warning(
+          'Restoran oluşturuldu ancak davet e-postası gönderilemedi. Lütfen tekrar gönderin.',
+        );
+      }
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast.error(err.message);
@@ -100,74 +110,67 @@ export default function CreateTenantPage() {
     }
   }
 
-  async function handleCopy(text: string, field: string) {
-    await navigator.clipboard.writeText(text);
-    setCopied(field);
-    setTimeout(() => setCopied(null), 2000);
+  async function handleResendInvitation() {
+    if (!createdTenant) return;
+    setResending(true);
+    try {
+      await apiClient(`/tenants/${createdTenant.tenantId}/resend-invitation`, {
+        method: 'POST',
+        accessToken: session?.access_token,
+      });
+      toast.success(
+        `Davet e-postası tekrar gönderildi: ${createdTenant.email}`,
+      );
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        toast.error(err.message);
+      } else {
+        toast.error('Davet gönderilemedi');
+      }
+    } finally {
+      setResending(false);
+    }
   }
 
-  if (credentials) {
+  if (createdTenant) {
     return (
       <div className="mx-auto max-w-lg">
         <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
           <CardHeader>
             <CardTitle>Restoran Oluşturuldu</CardTitle>
             <CardDescription>
-              Aşağıdaki bilgileri restoran sahibiyle paylaşın. Bu bilgiler
-              tekrar gösterilemez.
+              Restoran sahibine davet e-postası gönderildi.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <FieldLabel className="text-muted-foreground text-sm">
-                E-posta
-              </FieldLabel>
-              <div className="mt-1 flex items-center gap-2">
-                <code className="bg-background flex-1 rounded px-3 py-2 text-sm">
-                  {credentials.email}
-                </code>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleCopy(credentials.email, 'email')}
-                >
-                  {copied === 'email' ? (
-                    <CheckIcon className="h-4 w-4" />
-                  ) : (
-                    <CopyIcon className="h-4 w-4" />
-                  )}
-                </Button>
+            <div className="flex items-start gap-3">
+              <MailIcon className="text-muted-foreground mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">
+                  Davet e-postası gönderildi: {createdTenant.email}
+                </p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Restoran sahibi e-postadaki bağlantıya tıklayarak şifresini
+                  belirleyecektir.
+                </p>
               </div>
             </div>
-            <div>
-              <FieldLabel className="text-muted-foreground text-sm">
-                Geçici Şifre
-              </FieldLabel>
-              <div className="mt-1 flex items-center gap-2">
-                <code className="bg-background flex-1 rounded px-3 py-2 text-sm font-bold">
-                  {credentials.temporaryPassword}
-                </code>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    handleCopy(credentials.temporaryPassword, 'password')
-                  }
-                >
-                  {copied === 'password' ? (
-                    <CheckIcon className="h-4 w-4" />
-                  ) : (
-                    <CopyIcon className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleResendInvitation}
+                disabled={resending}
+              >
+                {resending ? 'Gönderiliyor...' : 'Daveti Tekrar Gönder'}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => router.push('/admin/tenants')}
+              >
+                Restoran Listesine Dön
+              </Button>
             </div>
-            <Button
-              className="mt-4 w-full"
-              onClick={() => router.push('/admin/tenants')}
-            >
-              Restoran Listesine Dön
-            </Button>
           </CardContent>
         </Card>
       </div>

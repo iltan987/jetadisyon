@@ -46,6 +46,7 @@ development_status:
   1-2-tenant-creation-and-owner-account-setup: done
   1-3-tenant-owner-login-and-forced-password-reset: done
   1-4-role-based-access-and-tenant-data-isolation: done
+  1-4b-email-invitation-account-creation: done
   1-5-staff-account-management: backlog
   1-6-admin-tenant-overview-and-lifecycle-management: backlog
   epic-1-retrospective: optional

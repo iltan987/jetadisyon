@@ -304,9 +304,9 @@ describe('AuthService', () => {
       expect(result.data.message).toBe('Password changed successfully');
       expect(result.data.accessToken).toBe('new-access');
       expect(result.data.refreshToken).toBe('new-refresh');
-      expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(
+        mockSupabaseClient.auth.admin.updateUserById,
+      ).toHaveBeenCalledTimes(1);
       expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledWith(
         'user-id',
         {
@@ -373,6 +373,95 @@ describe('AuthService', () => {
 
       await expect(
         service.changePassword('user-id', 'owner@test.com', changePasswordDto),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
+  describe('setInitialPassword', () => {
+    const setPasswordDto = {
+      newPassword: 'newpass456',
+      confirmPassword: 'newpass456',
+    };
+
+    it('should set password and return fresh tokens', async () => {
+      mockSupabaseClient.auth.admin.updateUserById.mockResolvedValue({
+        data: {},
+        error: null,
+      });
+      mockAuthClient.auth.signInWithPassword.mockResolvedValue({
+        data: {
+          session: {
+            access_token: 'new-access',
+            refresh_token: 'new-refresh',
+          },
+          user: {},
+        },
+        error: null,
+      });
+
+      const result = await service.setInitialPassword(
+        'user-id',
+        'owner@test.com',
+        { invitation_pending: true },
+        setPasswordDto,
+      );
+
+      expect(result.data.accessToken).toBe('new-access');
+      expect(result.data.refreshToken).toBe('new-refresh');
+      expect(mockSupabaseClient.auth.admin.updateUserById).toHaveBeenCalledWith(
+        'user-id',
+        {
+          password: 'newpass456',
+          user_metadata: { invitation_pending: null },
+        },
+      );
+    });
+
+    it('should reject if invitation_pending is not true', async () => {
+      await expect(
+        service.setInitialPassword(
+          'user-id',
+          'owner@test.com',
+          {},
+          setPasswordDto,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should return null tokens when re-auth fails after password set', async () => {
+      mockSupabaseClient.auth.admin.updateUserById.mockResolvedValue({
+        data: {},
+        error: null,
+      });
+      mockAuthClient.auth.signInWithPassword.mockResolvedValue({
+        data: { session: null, user: null },
+        error: { message: 'Re-auth failed' },
+      });
+
+      const result = await service.setInitialPassword(
+        'user-id',
+        'owner@test.com',
+        { invitation_pending: true },
+        setPasswordDto,
+      );
+
+      expect(result.data.accessToken).toBeNull();
+      expect(result.data.refreshToken).toBeNull();
+    });
+
+    it('should throw InternalServerErrorException on update failure', async () => {
+      mockSupabaseClient.auth.admin.updateUserById.mockResolvedValue({
+        data: null,
+        error: { message: 'Update failed' },
+      });
+
+      await expect(
+        service.setInitialPassword(
+          'user-id',
+          'owner@test.com',
+          { invitation_pending: true },
+          setPasswordDto,
+        ),
       ).rejects.toThrow(InternalServerErrorException);
     });
   });

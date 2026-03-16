@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
+import { minutes, Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
 
 import { AccessToken } from '../common/decorators/access-token.decorator';
@@ -43,5 +44,12 @@ export class TenantsController {
     @AccessToken() accessToken: string,
   ) {
     return this.tenantsService.findById(tenantId, user, accessToken);
+  }
+
+  @Post(':tenantId/resend-invitation')
+  @Roles('admin')
+  @Throttle({ default: { limit: 3, ttl: minutes(15) } })
+  async resendInvitation(@Param('tenantId', ParseUUIDPipe) tenantId: string) {
+    return this.tenantsService.resendInvitation(tenantId);
   }
 }

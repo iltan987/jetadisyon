@@ -5,6 +5,29 @@ import { createClient } from './supabase/client';
 
 const API_BASE_URL = clientEnv.NEXT_PUBLIC_API_URL;
 
+/**
+ * Centralized Turkish translations for known API error codes.
+ * Pages can still override via err.code checks for context-specific messages.
+ */
+const ERROR_MESSAGES: Record<string, string> = {
+  'SYSTEM.RATE_LIMITED':
+    'Çok fazla istek gönderildi. Lütfen bir süre bekleyip tekrar deneyin.',
+  'AUTH.UNAUTHORIZED': 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın.',
+  'AUTH.FORBIDDEN': 'Bu işlem için yetkiniz yok.',
+  'TENANT.DUPLICATE_EMAIL': 'Bu e-posta adresi zaten kullanılıyor.',
+  'TENANT.CREATION_FAILED': 'Restoran oluşturulamadı. Lütfen tekrar deneyin.',
+  'TENANT.NOT_FOUND': 'Restoran bulunamadı.',
+  'TENANT.INVITATION_NOT_PENDING':
+    'Restoran sahibi davetini zaten kabul etmiş.',
+  'TENANT.RESEND_FAILED':
+    'Davet bağlantısı oluşturulamadı. Lütfen tekrar deneyin.',
+  'AUTH.INVALID_CREDENTIALS': 'E-posta veya şifre hatalı.',
+  'AUTH.SET_PASSWORD_FAILED': 'Şifre belirlenemedi. Lütfen tekrar deneyin.',
+  'AUTH.NOT_INVITATION_USER':
+    'Bu işlem sadece davet edilen kullanıcılar içindir.',
+  'AUTH.PASSWORD_UPDATE_FAILED': 'Şifre güncellenemedi. Lütfen tekrar deneyin.',
+};
+
 interface ApiError {
   code: string;
   message: string;
@@ -77,10 +100,13 @@ export async function apiClient<T>(
           `Sunucu hatası (${response.status})`,
         );
       }
+      const errorCode = body.error?.code ?? 'UNKNOWN';
+      const errorMessage =
+        ERROR_MESSAGES[errorCode] ?? body.error?.message ?? 'Bir hata oluştu';
       throw new ApiClientError(
         response.status,
-        body.error?.code ?? 'UNKNOWN',
-        body.error?.message ?? 'Bir hata oluştu',
+        errorCode,
+        errorMessage,
         body.error?.details,
       );
     }

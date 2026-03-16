@@ -9,6 +9,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { SupabaseService } from '../supabase/supabase.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
+import type { SetInitialPasswordDto } from './dto/set-initial-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -53,8 +54,7 @@ export class AuthService {
       data: {
         accessToken: session.access_token,
         refreshToken: session.refresh_token,
-        mustChangePassword:
-          user.user_metadata?.must_change_password === true,
+        mustChangePassword: user.user_metadata?.must_change_password === true,
         user: {
           id: user.id,
           email: user.email,
@@ -153,6 +153,60 @@ export class AuthService {
     return {
       data: {
         message: 'Password changed successfully',
+        accessToken: newSession.session.access_token,
+        refreshToken: newSession.session.refresh_token,
+      },
+    };
+  }
+
+  async setInitialPassword(
+    userId: string,
+    email: string,
+    userMetadata: Record<string, unknown>,
+    dto: SetInitialPasswordDto,
+  ) {
+    // Verify user has invitation_pending flag
+    if (userMetadata?.invitation_pending !== true) {
+      throw new BadRequestException({
+        code: 'AUTH.NOT_INVITATION_USER',
+        message: 'This endpoint is only for invited users',
+      });
+    }
+
+    // Set password and clear invitation_pending flag
+    const { error: updateError } = await this.supabaseService
+      .getClient()
+      .auth.admin.updateUserById(userId, {
+        password: dto.newPassword,
+        user_metadata: { invitation_pending: null },
+      });
+
+    if (updateError) {
+      throw new InternalServerErrorException({
+        code: 'AUTH.SET_PASSWORD_FAILED',
+        message: 'Failed to set password',
+      });
+    }
+
+    // Re-authenticate with new password to get fresh tokens
+    const { data: newSession, error: reAuthError } = await this.supabaseService
+      .createAuthClient()
+      .auth.signInWithPassword({ email, password: dto.newPassword });
+
+    if (reAuthError || !newSession.session) {
+      this.logger.warn({ userId }, 'Password set but re-auth failed');
+      return {
+        data: {
+          accessToken: null,
+          refreshToken: null,
+        },
+      };
+    }
+
+    this.logger.info({ userId }, 'Initial password set successfully');
+
+    return {
+      data: {
         accessToken: newSession.session.access_token,
         refreshToken: newSession.session.refresh_token,
       },

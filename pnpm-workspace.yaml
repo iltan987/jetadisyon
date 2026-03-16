@@ -8,5 +8,6 @@ ignoredBuiltDependencies:
 
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - esbuild
   - msw
   - supabase

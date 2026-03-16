@@ -19,6 +19,10 @@ import {
 } from './dto/change-password.dto';
 import { type LoginDto, loginSchema } from './dto/login.dto';
 import { type RefreshDto, refreshSchema } from './dto/refresh.dto';
+import {
+  type SetInitialPasswordDto,
+  setInitialPasswordSchema,
+} from './dto/set-initial-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -56,6 +60,28 @@ export class AuthController {
       });
     }
     return this.authService.changePassword(user.id, user.email, dto);
+  }
+
+  @Post('set-initial-password')
+  @Roles('tenant_owner', 'tenant_staff')
+  @Throttle({ default: { limit: 5, ttl: minutes(15) } })
+  async setInitialPassword(
+    @CurrentUser() user: User,
+    @Body(new ZodValidationPipe(setInitialPasswordSchema))
+    dto: SetInitialPasswordDto,
+  ) {
+    if (!user.email) {
+      throw new UnauthorizedException({
+        code: 'AUTH.USER_NOT_FOUND',
+        message: 'User email not available',
+      });
+    }
+    return this.authService.setInitialPassword(
+      user.id,
+      user.email,
+      user.user_metadata,
+      dto,
+    );
   }
 
   @Get('me')
