@@ -84,7 +84,7 @@ So that my business information is private and secure.
 **Implementation order: Task 8 first (token injection), then Task 7 (user-scoped client), since services need the token before they can use `getClientForUser()`.**
 
 - [x] Task 7a: Add `SUPABASE_PUBLISHABLE_KEY` to API environment (AC: #1, #5)
-  - [x] 7a.1 Add `SUPABASE_PUBLISHABLE_KEY` to `apps/api/.env` (copy the anon key from `supabase start` output — same key used in `apps/web/.env.local` as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
+  - [x] 7a.1 Add `SUPABASE_PUBLISHABLE_KEY` to `apps/api/.env` (copy the anon key from `supabase start` output — same key used in `apps/web/.env` as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
   - [x] 7a.2 Add `SUPABASE_PUBLISHABLE_KEY` to the Zod env validation schema in `apps/api/src/config/env.validation.ts`
   - [x] 7a.3 Inject it via `ConfigService` in `SupabaseService` constructor
   - [x] 7a.4 **Why needed:** `getClientForUser()` must create a Supabase client with the **anon key** (not service-role key) + the user's JWT. The service-role key bypasses RLS entirely, so using it with a user JWT would defeat the purpose.

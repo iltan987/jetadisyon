@@ -142,7 +142,7 @@ project-name/
 ├── next.config.js
 ├── tailwind.config.js
 ├── tsconfig.json
-├── .env.local
+├── .env
 ├── .env.example
 ├── .gitignore
 ├── .github/

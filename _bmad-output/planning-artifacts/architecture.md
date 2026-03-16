@@ -718,7 +718,7 @@ jetadisyon/                              # Monorepo root
 ├── apps/
 │   ├── api/                             # NestJS 11 backend
 │   │   ├── .env.example
-│   │   ├── .env.local                   # Local env (gitignored)
+│   │   ├── .env                         # Local env (gitignored)
 │   │   ├── .gitignore
 │   │   ├── nest-cli.json
 │   │   ├── package.json
@@ -858,7 +858,7 @@ jetadisyon/                              # Monorepo root
 │   │
 │   └── web/                             # Next.js 16 frontend
 │       ├── .env.example
-│       ├── .env.local                   # ✅ EXISTS
+│       ├── .env                         # ✅ EXISTS
 │       ├── .gitignore                   # ✅ EXISTS
 │       ├── components.json              # ✅ EXISTS — shadcn config
 │       ├── next.config.ts               # ✅ EXISTS

@@ -70,7 +70,7 @@ supabase start
 
 # Copy environment files
 cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env.local
+cp apps/web/.env.example apps/web/.env
 
 # Start all apps
 pnpm dev

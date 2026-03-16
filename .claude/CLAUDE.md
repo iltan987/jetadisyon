@@ -55,7 +55,7 @@ THROTTLE_TTL=60          # optional, default 60s
 THROTTLE_LIMIT=100       # optional, default 100 req/ttl
 ```
 
-### apps/web (`apps/web/.env.local`)
+### apps/web (`apps/web/.env`)
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
