@@ -69,7 +69,7 @@ describe('TenantsController', () => {
     it('should call findById with tenantId, user, and accessToken', async () => {
       const user = {
         id: 'admin-uuid',
-        app_metadata: { user_role: 'admin' },
+        app_metadata: { system_role: 'admin' },
       } as unknown as User;
       const accessToken = 'mock-token';
       const expected = { data: { id: 'tenant-1', name: 'Restaurant A' } };

@@ -10,7 +10,6 @@ import { AuthModule } from './auth/auth.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { RolesGuard } from './common/guards/roles.guard';
 import { SupabaseAuthGuard } from './common/guards/supabase-auth.guard';
-import { TenantGuard } from './common/guards/tenant.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { validate } from './config/env.validation';
 import { MailModule } from './mail/mail.module';
@@ -64,7 +63,6 @@ import { TenantsModule } from './tenants/tenants.module';
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: SupabaseAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
-    { provide: APP_GUARD, useClass: TenantGuard },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],

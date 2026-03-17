@@ -4,27 +4,17 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AuthenticatedRequest } from '../types/request.types';
 
 @Injectable()
 export class TenantGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
-
   canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (isPublic) return true;
-
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const userRole = request.user?.app_metadata?.user_role;
+    const systemRole = request.user?.app_metadata?.system_role;
 
     // Admin users are not tenant-scoped — allow through with null tenantId
-    if (userRole === 'admin') {
+    if (systemRole === 'admin') {
       request.tenantId = null;
       return true;
     }

@@ -69,21 +69,21 @@ export type Database = {
           created_at: string;
           full_name: string;
           id: string;
-          role: Database['public']['Enums']['app_role'];
+          role: Database['public']['Enums']['system_role'];
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           full_name: string;
           id: string;
-          role: Database['public']['Enums']['app_role'];
+          role?: Database['public']['Enums']['system_role'];
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           full_name?: string;
           id?: string;
-          role?: Database['public']['Enums']['app_role'];
+          role?: Database['public']['Enums']['system_role'];
           updated_at?: string;
         };
         Relationships: [];
@@ -92,18 +92,21 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          role: Database['public']['Enums']['tenant_role'];
           tenant_id: string;
           user_id: string;
         };
         Insert: {
           created_at?: string;
           id?: string;
+          role: Database['public']['Enums']['tenant_role'];
           tenant_id: string;
           user_id: string;
         };
         Update: {
           created_at?: string;
           id?: string;
+          role?: Database['public']['Enums']['tenant_role'];
           tenant_id?: string;
           user_id?: string;
         };
@@ -162,8 +165,9 @@ export type Database = {
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
     };
     Enums: {
-      app_role: 'admin' | 'tenant_owner' | 'tenant_staff';
+      system_role: 'admin' | 'user';
       tenant_license_status: 'trial' | 'active' | 'expired' | 'cancelled';
+      tenant_role: 'owner' | 'staff' | 'employee';
       tenant_status: 'active' | 'suspended' | 'inactive';
     };
     CompositeTypes: {
@@ -298,8 +302,9 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ['admin', 'tenant_owner', 'tenant_staff'],
+      system_role: ['admin', 'user'],
       tenant_license_status: ['trial', 'active', 'expired', 'cancelled'],
+      tenant_role: ['owner', 'staff', 'employee'],
       tenant_status: ['active', 'suspended', 'inactive'],
     },
   },

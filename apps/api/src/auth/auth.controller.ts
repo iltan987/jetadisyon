@@ -10,7 +10,6 @@ import type { User } from '@supabase/supabase-js';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
 import {
@@ -47,7 +46,6 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @Roles('tenant_owner', 'tenant_staff')
   @Throttle({ default: { limit: 5, ttl: minutes(15) } })
   async changePassword(
     @CurrentUser() user: User,
@@ -63,7 +61,6 @@ export class AuthController {
   }
 
   @Post('set-initial-password')
-  @Roles('tenant_owner', 'tenant_staff')
   @Throttle({ default: { limit: 5, ttl: minutes(15) } })
   async setInitialPassword(
     @CurrentUser() user: User,

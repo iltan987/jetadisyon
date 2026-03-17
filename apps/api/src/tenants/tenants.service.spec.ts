@@ -396,14 +396,12 @@ describe('TenantsService', () => {
       const builder = Object.assign(result, {
         overrideTypes: jest.fn().mockReturnValue(result),
       });
-      const eqFn = jest.fn().mockReturnValue({
-        single: jest.fn().mockReturnValue(builder),
-      });
       return {
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            // Support chained .eq() for the profiles.role filter
-            eq: eqFn,
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockReturnValue(builder),
+            }),
             single: jest.fn().mockReturnValue(builder),
           }),
         }),
@@ -502,10 +500,10 @@ describe('TenantsService', () => {
           updated_at: '2026-01-01T00:00:00Z',
           tenant_memberships: [
             {
+              role: 'owner',
               profiles: {
                 id: 'owner-1',
                 full_name: 'Owner A',
-                role: 'tenant_owner',
               },
             },
           ],
@@ -572,12 +570,20 @@ describe('TenantsService', () => {
   describe('findById', () => {
     const mockAdminUser = {
       id: 'admin-uuid',
-      app_metadata: { user_role: 'admin', tenant_id: null },
+      app_metadata: {
+        system_role: 'admin',
+        tenant_role: null,
+        tenant_id: null,
+      },
     } as unknown as User;
 
     const mockOwnerUser = {
       id: 'owner-1',
-      app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+      app_metadata: {
+        system_role: 'user',
+        tenant_role: 'owner',
+        tenant_id: 'tenant-1',
+      },
     } as unknown as User;
 
     const mockTenantData = {
@@ -590,10 +596,10 @@ describe('TenantsService', () => {
       updated_at: '2026-01-01T00:00:00Z',
       tenant_memberships: [
         {
+          role: 'owner',
           profiles: {
             id: 'owner-1',
             full_name: 'Owner A',
-            role: 'tenant_owner',
           },
         },
       ],
@@ -624,7 +630,7 @@ describe('TenantsService', () => {
       expect(mockSupabaseService.getClientForUser).not.toHaveBeenCalled();
     });
 
-    it('should return tenant for tenant_owner using user-scoped client (RLS)', async () => {
+    it('should return tenant for owner using user-scoped client (RLS)', async () => {
       mockUserScopedClient.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({

@@ -86,7 +86,7 @@ export async function updateSession(request: NextRequest) {
     if (!user) {
       return redirectToLogin();
     }
-    if (user.app_metadata?.user_role !== 'admin') {
+    if (user.app_metadata?.system_role !== 'admin') {
       return redirectTo('/');
     }
     return supabaseResponse;
@@ -108,12 +108,13 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Basic first-pass: admin should not access tenant routes
-  if (user.app_metadata?.user_role === 'admin') {
+  if (user.app_metadata?.system_role === 'admin') {
     return redirectTo('/admin/overview');
   }
 
-  // Basic first-pass: staff cannot access analytics or settings
-  if (user.app_metadata?.user_role === 'tenant_staff') {
+  // Basic first-pass: staff/employee cannot access analytics or settings
+  const tenantRole = user.app_metadata?.tenant_role;
+  if (tenantRole === 'staff' || tenantRole === 'employee') {
     if (pathname.startsWith('/analytics') || pathname.startsWith('/settings')) {
       return redirectTo('/dashboard');
     }

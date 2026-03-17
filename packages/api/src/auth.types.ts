@@ -1,4 +1,4 @@
-import type { AppRole } from './roles.types';
+import type { SystemRole, TenantRole } from './roles.types';
 
 export interface LoginRequest {
   email: string;
@@ -21,14 +21,16 @@ export interface ChangePasswordRequest {
 export interface AuthUser {
   id: string;
   email: string;
-  role: AppRole | null;
+  systemRole: SystemRole | null;
+  tenantRole: TenantRole | null;
   tenantId: string | null;
 }
 
 export interface TokenPayload {
   sub: string;
   email: string;
-  user_role: AppRole;
+  system_role: SystemRole;
+  tenant_role: TenantRole | null;
   tenant_id: string | null;
   exp: number;
   iat: number;

@@ -71,7 +71,11 @@ describe('SupabaseAuthGuard', () => {
       email: 'test@test.com',
       app_metadata: { provider: 'email', providers: ['email'] },
     };
-    const jwtAppMetadata = { user_role: 'admin', tenant_id: null };
+    const jwtAppMetadata = {
+      system_role: 'admin',
+      tenant_role: null,
+      tenant_id: null,
+    };
 
     mockSupabaseClient.auth.getUser.mockResolvedValue({
       data: { user: dbUser },

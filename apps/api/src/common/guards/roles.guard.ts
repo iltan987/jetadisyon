@@ -21,9 +21,15 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const userRole = request.user?.app_metadata?.user_role;
+    const appMetadata = request.user?.app_metadata;
+    const systemRole = appMetadata?.system_role as string | undefined;
+    const tenantRole = appMetadata?.tenant_role as string | undefined;
 
-    if (!userRole || !requiredRoles.includes(userRole as string)) {
+    const hasRole =
+      (systemRole && requiredRoles.includes(systemRole)) ||
+      (tenantRole && requiredRoles.includes(tenantRole));
+
+    if (!hasRole) {
       throw new ForbiddenException({
         code: 'AUTH.INSUFFICIENT_ROLE',
         message: 'Insufficient permissions',

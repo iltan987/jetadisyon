@@ -67,7 +67,11 @@ describe('AuthService', () => {
           user: {
             id: 'user-id',
             email: 'admin@test.com',
-            app_metadata: { user_role: 'admin', tenant_id: null },
+            app_metadata: {
+              system_role: 'admin',
+              tenant_role: null,
+              tenant_id: null,
+            },
             user_metadata: {},
           },
         },
@@ -90,7 +94,11 @@ describe('AuthService', () => {
           user: {
             id: 'user-id',
             email: 'admin@test.com',
-            app_metadata: { user_role: 'admin', tenant_id: null },
+            app_metadata: {
+              system_role: 'admin',
+              tenant_role: null,
+              tenant_id: null,
+            },
             user_metadata: {},
           },
         },
@@ -103,7 +111,7 @@ describe('AuthService', () => {
       expect(result.data.refreshToken).toBe('refresh-token');
       expect(result.data.mustChangePassword).toBe(false);
       expect(result.data.user.email).toBe('admin@test.com');
-      expect(result.data.user.role).toBe('admin');
+      expect(result.data.user.systemRole).toBe('admin');
     });
 
     it('should return mustChangePassword true when flag is set', async () => {
@@ -116,7 +124,11 @@ describe('AuthService', () => {
           user: {
             id: 'user-id',
             email: 'owner@test.com',
-            app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+            app_metadata: {
+              system_role: 'user',
+              tenant_role: 'owner',
+              tenant_id: 'tenant-1',
+            },
             user_metadata: { must_change_password: true },
           },
         },
@@ -223,7 +235,11 @@ describe('AuthService', () => {
           user: {
             id: 'user-id',
             email: 'admin@test.com',
-            app_metadata: { user_role: 'admin', tenant_id: null },
+            app_metadata: {
+              system_role: 'admin',
+              tenant_role: null,
+              tenant_id: null,
+            },
           },
         },
         error: null,
@@ -241,7 +257,11 @@ describe('AuthService', () => {
           user: {
             id: 'user-id',
             email: 'admin@test.com',
-            app_metadata: { user_role: 'admin', tenant_id: null },
+            app_metadata: {
+              system_role: 'admin',
+              tenant_role: null,
+              tenant_id: null,
+            },
           },
         },
         error: null,
@@ -251,7 +271,7 @@ describe('AuthService', () => {
 
       expect(result.data.id).toBe('user-id');
       expect(result.data.email).toBe('admin@test.com');
-      expect(result.data.role).toBe('admin');
+      expect(result.data.systemRole).toBe('admin');
       expect(result.data.tenantId).toBeNull();
     });
 

@@ -32,7 +32,10 @@ function mapUser(user: User): AuthUser {
   return {
     id: user.id,
     email: user.email ?? '',
-    role: (user.app_metadata?.user_role as AuthUser['role']) ?? null,
+    systemRole:
+      (user.app_metadata?.system_role as AuthUser['systemRole']) ?? null,
+    tenantRole:
+      (user.app_metadata?.tenant_role as AuthUser['tenantRole']) ?? null,
     tenantId: (user.app_metadata?.tenant_id as string) ?? null,
   };
 }

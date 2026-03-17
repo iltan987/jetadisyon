@@ -1,7 +1,16 @@
-export type AppRole = 'admin' | 'tenant_owner' | 'tenant_staff';
+import type { Enums } from './database.types';
 
-export const APP_ROLES = {
+export type SystemRole = Enums<'system_role'>;
+export type TenantRole = Enums<'tenant_role'>;
+export type AnyRole = SystemRole | TenantRole;
+
+export const SYSTEM_ROLES = {
   ADMIN: 'admin',
-  TENANT_OWNER: 'tenant_owner',
-  TENANT_STAFF: 'tenant_staff',
-} as const satisfies Record<string, AppRole>;
+  USER: 'user',
+} as const satisfies Record<string, SystemRole>;
+
+export const TENANT_ROLES = {
+  OWNER: 'owner',
+  STAFF: 'staff',
+  EMPLOYEE: 'employee',
+} as const satisfies Record<string, TenantRole>;

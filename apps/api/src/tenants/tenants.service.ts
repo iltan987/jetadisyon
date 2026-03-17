@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import type { User } from '@supabase/supabase-js';
 import { PinoLogger } from 'nestjs-pino';
 
+import type { TenantRole } from '@repo/api';
+
 import { MailService } from '../mail/mail.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
@@ -24,7 +26,8 @@ interface TenantRow {
 }
 
 interface TenantMembershipJoin {
-  profiles: { id: string; full_name: string; role: string } | null;
+  role: TenantRole;
+  profiles: { id: string; full_name: string } | null;
 }
 
 @Injectable()
@@ -95,7 +98,7 @@ export class TenantsService {
       const { error: profileError } = await client.from('profiles').insert({
         id: authUserId,
         full_name: dto.ownerFullName,
-        role: 'tenant_owner',
+        role: 'user',
       });
 
       if (profileError) {
@@ -108,7 +111,7 @@ export class TenantsService {
       // Step 4: Insert tenant_memberships entry
       const { error: membershipError } = await client
         .from('tenant_memberships')
-        .insert({ user_id: authUserId, tenant_id: tenantId });
+        .insert({ user_id: authUserId, tenant_id: tenantId, role: 'owner' });
 
       if (membershipError) {
         throw new InternalServerErrorException({
@@ -196,10 +199,10 @@ export class TenantsService {
         `
         *,
         tenant_memberships (
+          role,
           profiles (
             id,
-            full_name,
-            role
+            full_name
           )
         )
       `,
@@ -225,12 +228,12 @@ export class TenantsService {
   }
 
   async findById(tenantId: string, currentUser: User, accessToken: string) {
-    const userRole = currentUser.app_metadata.user_role;
+    const systemRole = currentUser.app_metadata.system_role;
 
     // Admin uses service-role client (cross-tenant access);
     // non-admin uses user-scoped client (RLS enforces tenant isolation)
     const client =
-      userRole === 'admin'
+      systemRole === 'admin'
         ? this.supabaseService.getClient()
         : this.supabaseService.getClientForUser(accessToken);
 
@@ -240,10 +243,10 @@ export class TenantsService {
         `
         *,
         tenant_memberships (
+          role,
           profiles (
             id,
-            full_name,
-            role
+            full_name
           )
         )
       `,
@@ -287,9 +290,9 @@ export class TenantsService {
     // Look up tenant owner (filter by role — future staff members won't match)
     const { data: membership, error: membershipError } = await client
       .from('tenant_memberships')
-      .select('user_id, profiles!inner(role)')
+      .select('user_id')
       .eq('tenant_id', tenantId)
-      .eq('profiles.role', 'tenant_owner')
+      .eq('role', 'owner')
       .single()
       .overrideTypes<{ user_id: string }>();
 
@@ -370,9 +373,10 @@ export class TenantsService {
     tenant: TenantRow,
     memberships?: TenantMembershipJoin[],
   ) {
-    const ownerProfile = (memberships ?? []).find(
-      (tm) => tm.profiles?.role === 'tenant_owner',
-    )?.profiles;
+    const ownerMembership = (memberships ?? []).find(
+      (tm) => tm.role === 'owner',
+    );
+    const ownerProfile = ownerMembership?.profiles;
 
     return {
       id: tenant.id,

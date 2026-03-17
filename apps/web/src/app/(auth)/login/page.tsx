@@ -69,7 +69,7 @@ function LoginForm() {
 
       const destination = isValidReturnPath(nextPath)
         ? nextPath
-        : data.user.role === 'admin'
+        : data.user.systemRole === 'admin'
           ? '/admin/overview'
           : '/dashboard';
       router.push(destination);

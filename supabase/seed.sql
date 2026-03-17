@@ -79,7 +79,7 @@ BEGIN
 
     -- Admin profile: role admin, no tenant membership
     INSERT INTO public.profiles (id, full_name, role)
-    VALUES (new_user_id, 'Admin User', 'admin'::public.app_role);
+    VALUES (new_user_id, 'Admin User', 'admin'::public.system_role);
 
     RAISE NOTICE 'Admin user created: admin0@jetadisyon.com';
   ELSE
@@ -168,10 +168,10 @@ BEGIN
 
     -- Tenant owner: profile with role + tenant membership
     INSERT INTO public.profiles (id, full_name, role)
-    VALUES (tenant_owner_user_id, 'Test Owner', 'tenant_owner'::public.app_role);
+    VALUES (tenant_owner_user_id, 'Test Owner', 'user'::public.system_role);
 
-    INSERT INTO public.tenant_memberships (user_id, tenant_id)
-    VALUES (tenant_owner_user_id, tenant_id);
+    INSERT INTO public.tenant_memberships (user_id, tenant_id, role)
+    VALUES (tenant_owner_user_id, tenant_id, 'owner'::public.tenant_role);
 
     RAISE NOTICE 'Tenant owner user created: tenant_owner0@jetadisyon.com';
   ELSE
@@ -241,10 +241,10 @@ BEGIN
 
     -- Tenant staff: profile with role + tenant membership
     INSERT INTO public.profiles (id, full_name, role)
-    VALUES (tenant_staff_user_id, 'Test Staff', 'tenant_staff'::public.app_role);
+    VALUES (tenant_staff_user_id, 'Test Staff', 'user'::public.system_role);
 
-    INSERT INTO public.tenant_memberships (user_id, tenant_id)
-    VALUES (tenant_staff_user_id, tenant_id);
+    INSERT INTO public.tenant_memberships (user_id, tenant_id, role)
+    VALUES (tenant_staff_user_id, tenant_id, 'staff'::public.tenant_role);
 
     RAISE NOTICE 'Tenant staff user created: tenant_staff0@jetadisyon.com';
   ELSE

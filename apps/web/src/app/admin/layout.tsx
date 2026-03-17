@@ -22,7 +22,7 @@ export default async function AdminLayout({
     redirect('/login');
   }
 
-  if (claims.app_metadata?.user_role !== 'admin') {
+  if (claims.app_metadata?.system_role !== 'admin') {
     redirect('/');
   }
 

@@ -7,7 +7,6 @@ import { type App } from 'supertest/types';
 import { AppController } from './../src/app.controller';
 import { AppService } from './../src/app.service';
 import { RolesGuard } from './../src/common/guards/roles.guard';
-import { TenantGuard } from './../src/common/guards/tenant.guard';
 import { LoggingInterceptor } from './../src/common/interceptors/logging.interceptor';
 import { SupabaseService } from './../src/supabase/supabase.service';
 import { TenantsController } from './../src/tenants/tenants.controller';
@@ -117,7 +116,6 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
         { provide: SupabaseService, useValue: mockSupabaseService },
         { provide: APP_GUARD, useClass: MockAuthGuard },
         { provide: APP_GUARD, useClass: RolesGuard },
-        { provide: APP_GUARD, useClass: TenantGuard },
         {
           provide: LoggingInterceptor,
           useValue: {
@@ -152,7 +150,11 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
     it('11.5: admin can access tenant list endpoint', async () => {
       currentTestUser = {
         id: 'admin-uuid',
-        app_metadata: { user_role: 'admin', tenant_id: null },
+        app_metadata: {
+          system_role: 'admin',
+          tenant_role: null,
+          tenant_id: null,
+        },
       };
       const res = await request(app.getHttpServer()).get('/api/v1/tenants');
       expect(res.status).toBe(200);
@@ -161,7 +163,11 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
     it('admin can access specific tenant endpoint', async () => {
       currentTestUser = {
         id: 'admin-uuid',
-        app_metadata: { user_role: 'admin', tenant_id: null },
+        app_metadata: {
+          system_role: 'admin',
+          tenant_role: null,
+          tenant_id: null,
+        },
       };
       const res = await request(app.getHttpServer()).get(
         '/api/v1/tenants/00000000-0000-0000-0000-000000000001',
@@ -170,11 +176,15 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
     });
   });
 
-  describe('tenant_owner access (AC #2, #3)', () => {
-    it('11.1: tenant_owner can access tenant-scoped endpoint', async () => {
+  describe('owner access (AC #2, #3)', () => {
+    it('11.1: owner can access tenant-scoped endpoint', async () => {
       currentTestUser = {
         id: 'owner-uuid',
-        app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'owner',
+          tenant_id: 'tenant-1',
+        },
       };
       const res = await request(app.getHttpServer()).get(
         '/api/v1/tenants/00000000-0000-0000-0000-000000000001',
@@ -182,18 +192,26 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
       expect(res.status).toBe(200);
     });
 
-    it('tenant_owner cannot access admin-only list endpoint', async () => {
+    it('owner cannot access admin-only list endpoint', async () => {
       currentTestUser = {
         id: 'owner-uuid',
-        app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'owner',
+          tenant_id: 'tenant-1',
+        },
       };
       await request(app.getHttpServer()).get('/api/v1/tenants').expect(403);
     });
 
-    it('11.2: tenant_owner accessing other tenant data gets 404 (RLS blocks)', async () => {
+    it('11.2: owner accessing other tenant data gets 404 (RLS blocks)', async () => {
       currentTestUser = {
         id: 'owner-uuid',
-        app_metadata: { user_role: 'tenant_owner', tenant_id: 'tenant-1' },
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'owner',
+          tenant_id: 'tenant-1',
+        },
       };
 
       // Simulate RLS blocking cross-tenant access: user-scoped client returns no rows
@@ -220,20 +238,55 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
     });
   });
 
-  describe('tenant_staff access (AC #3)', () => {
-    it('11.3: tenant_staff with valid tenant_id passes guard chain', async () => {
+  describe('staff access (AC #3)', () => {
+    it('11.3: staff with valid tenant_id passes guard chain', async () => {
       currentTestUser = {
         id: 'staff-uuid',
-        app_metadata: { user_role: 'tenant_staff', tenant_id: 'tenant-1' },
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'staff',
+          tenant_id: 'tenant-1',
+        },
       };
       const res = await request(app.getHttpServer()).get('/api/v1');
       expect(res.status).toBe(200);
     });
 
-    it('11.4: tenant_staff cannot access admin endpoint', async () => {
+    it('11.4: staff cannot access admin endpoint', async () => {
       currentTestUser = {
         id: 'staff-uuid',
-        app_metadata: { user_role: 'tenant_staff', tenant_id: 'tenant-1' },
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'staff',
+          tenant_id: 'tenant-1',
+        },
+      };
+      await request(app.getHttpServer()).get('/api/v1/tenants').expect(403);
+    });
+  });
+
+  describe('employee access', () => {
+    it('employee with valid tenant_id passes guard chain', async () => {
+      currentTestUser = {
+        id: 'employee-uuid',
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'employee',
+          tenant_id: 'tenant-1',
+        },
+      };
+      const res = await request(app.getHttpServer()).get('/api/v1');
+      expect(res.status).toBe(200);
+    });
+
+    it('employee cannot access admin endpoint', async () => {
+      currentTestUser = {
+        id: 'employee-uuid',
+        app_metadata: {
+          system_role: 'user',
+          tenant_role: 'employee',
+          tenant_id: 'tenant-1',
+        },
       };
       await request(app.getHttpServer()).get('/api/v1/tenants').expect(403);
     });
@@ -243,7 +296,7 @@ describe('Tenant Isolation Guard Chain (e2e)', () => {
     it('non-admin user without tenant_id is rejected by TenantGuard', async () => {
       currentTestUser = {
         id: 'broken-uuid',
-        app_metadata: { user_role: 'tenant_owner' },
+        app_metadata: { system_role: 'user', tenant_role: 'owner' },
       };
       const res = await request(app.getHttpServer()).get(
         '/api/v1/tenants/00000000-0000-0000-0000-000000000001',

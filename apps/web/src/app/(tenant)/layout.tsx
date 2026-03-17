@@ -26,8 +26,9 @@ export default async function TenantLayout({
     redirect('/change-password');
   }
 
-  // Authoritative guard: staff cannot access analytics or settings
-  if (claims.app_metadata?.user_role === 'tenant_staff') {
+  // Authoritative guard: staff/employee cannot access analytics or settings
+  const tenantRole = claims.app_metadata?.tenant_role;
+  if (tenantRole === 'staff' || tenantRole === 'employee') {
     const headersList = await headers();
     const pathname = headersList.get('x-pathname') ?? '';
     if (STAFF_RESTRICTED_PATHS.some((path) => pathname.startsWith(path))) {

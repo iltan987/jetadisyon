@@ -1,9 +1,9 @@
-import type { AppRole } from './roles.types';
+import type { SystemRole, TenantRole } from './roles.types';
 
 export interface Profile {
   id: string;
   fullName: string;
-  role: AppRole;
+  role: SystemRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -12,5 +12,6 @@ export interface TenantMembership {
   id: string;
   userId: string;
   tenantId: string;
+  role: TenantRole;
   createdAt: string;
 }

@@ -11,6 +11,7 @@ import type { User } from '@supabase/supabase-js';
 
 import { AccessToken } from '../common/decorators/access-token.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { RequireTenant } from '../common/decorators/require-tenant.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import type { CreateTenantDto } from './dto/create-tenant.dto';
@@ -37,7 +38,8 @@ export class TenantsController {
   }
 
   @Get(':tenantId')
-  @Roles('admin', 'tenant_owner')
+  @Roles('admin', 'owner')
+  @RequireTenant()
   async findById(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @CurrentUser() user: User,

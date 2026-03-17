@@ -20,13 +20,13 @@ const allNavItems = [
     title: 'Analitik',
     href: '/analytics',
     icon: BarChart3Icon,
-    roles: ['tenant_owner'],
+    roles: ['owner'],
   },
   {
     title: 'Ayarlar',
     href: '/settings',
     icon: SettingsIcon,
-    roles: ['tenant_owner'],
+    roles: ['owner'],
   },
 ];
 
@@ -35,7 +35,8 @@ export function TenantNav() {
   const { user, signOut } = useAuth();
 
   const navItems = allNavItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role)),
+    (item) =>
+      !item.roles || (user?.tenantRole && item.roles.includes(user.tenantRole)),
   );
 
   return (

@@ -8,28 +8,35 @@ SET search_path = ''
 AS $$
 DECLARE
   claims jsonb;
-  user_role public.app_role;
-  user_tenant_id uuid;
+  v_system_role text;
+  v_tenant_role text;
+  v_tenant_id uuid;
   must_change boolean;
 BEGIN
   claims := event -> 'claims';
 
-  -- Look up role from profiles table
-  SELECT p.role INTO user_role
+  -- 1. Read system role from profiles (always present for valid users)
+  SELECT p.role::text INTO v_system_role
   FROM public.profiles p
   WHERE p.id = (event ->> 'user_id')::uuid;
 
-  -- Look up tenant_id from tenant_memberships table
-  SELECT tm.tenant_id INTO user_tenant_id
+  -- 2. Read tenant membership (if exists)
+  SELECT tm.role::text, tm.tenant_id
+  INTO v_tenant_role, v_tenant_id
   FROM public.tenant_memberships tm
   WHERE tm.user_id = (event ->> 'user_id')::uuid
-  LIMIT 1;  -- picks first tenant for now; tenant switching is a future feature
+  ORDER BY tm.created_at ASC
+  LIMIT 1;
 
-  -- Inject into app_metadata claims
-  IF user_role IS NOT NULL THEN
+  -- 3. Inject both roles into app_metadata
+  IF v_system_role IS NOT NULL THEN
     claims := jsonb_set(claims, '{app_metadata}',
       COALESCE(claims -> 'app_metadata', '{}'::jsonb) ||
-      jsonb_build_object('user_role', user_role::text, 'tenant_id', user_tenant_id)
+      jsonb_build_object(
+        'system_role', v_system_role,
+        'tenant_role', v_tenant_role,
+        'tenant_id', v_tenant_id
+      )
     );
   END IF;
 

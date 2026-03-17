@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 
+import type { SystemRole, TenantRole } from '@repo/api';
+
 import { SupabaseService } from '../supabase/supabase.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -58,8 +60,9 @@ export class AuthService {
         user: {
           id: user.id,
           email: user.email,
-          role: user.app_metadata.user_role ?? null,
-          tenantId: user.app_metadata.tenant_id ?? null,
+          systemRole: (user.app_metadata.system_role as SystemRole) ?? null,
+          tenantRole: (user.app_metadata.tenant_role as TenantRole) ?? null,
+          tenantId: (user.app_metadata.tenant_id as string) ?? null,
         },
       },
     };
@@ -230,8 +233,9 @@ export class AuthService {
       data: {
         id: user.id,
         email: user.email,
-        role: user.app_metadata.user_role ?? null,
-        tenantId: user.app_metadata.tenant_id ?? null,
+        systemRole: (user.app_metadata.system_role as SystemRole) ?? null,
+        tenantRole: (user.app_metadata.tenant_role as TenantRole) ?? null,
+        tenantId: (user.app_metadata.tenant_id as string) ?? null,
       },
     };
   }

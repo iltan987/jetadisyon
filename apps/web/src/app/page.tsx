@@ -9,7 +9,7 @@ export default async function Home() {
     redirect('/login');
   }
 
-  if (claims.app_metadata?.user_role === 'admin') {
+  if (claims.app_metadata?.system_role === 'admin') {
     redirect('/admin/overview');
   }
 
