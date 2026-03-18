@@ -1,14 +1,6 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
-  "globalDependencies": ["**/.env.*local"],
-  "globalEnv": [
-    "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    "NODE_ENV",
-    "PORT"
-  ],
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "dev": {
       "cache": false,
@@ -18,9 +10,24 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
-    "lint": {},
-    "test": {},
-    "test:e2e": {},
+    "web#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local", ".env.*.local"],
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_API_URL"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
     "clean": {
       "cache": false
     }
