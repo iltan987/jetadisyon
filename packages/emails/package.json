@@ -12,9 +12,9 @@
     "./invitation": "./dist/invitation.js"
   },
   "dependencies": {
-    "@react-email/components": "^1.0.9",
+    "@react-email/components": "^1.0.10",
     "react": "19.2.3",
-    "react-email": "^5.2.9"
+    "react-email": "^5.2.10"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
