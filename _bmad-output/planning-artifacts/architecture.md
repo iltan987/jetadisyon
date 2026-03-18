@@ -82,7 +82,7 @@ This project is not starting from a starter template. The monorepo foundation wa
 
 | Workspace | Technology | Purpose |
 |-----------|-----------|---------|
-| `apps/web` | Next.js 16.1.6 (React 19, Turbopack) | Tenant and admin frontend |
+| `apps/web` | Next.js 16.1.7 (React 19, Turbopack) | Tenant and admin frontend |
 | `apps/api` | NestJS 11 (Express) | Backend API, webhook processing, order engine |
 | `packages/ui` | shadcn/ui v4 (Base UI, CVA, Tailwind v4) | Shared UI component library |
 | `packages/api` | TypeScript (NestJS mapped-types) | Shared DTOs and API types |
