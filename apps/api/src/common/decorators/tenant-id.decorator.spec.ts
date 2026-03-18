@@ -23,9 +23,7 @@ function getParamDecoratorFactory() {
   return metadata[key]!.factory;
 }
 
-const createMockContext = (
-  tenantId?: string | null,
-): ExecutionContext => {
+const createMockContext = (tenantId?: string | null): ExecutionContext => {
   const request: Record<string, unknown> = {};
   if (tenantId !== undefined) {
     request.tenantId = tenantId;
