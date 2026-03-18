@@ -26,6 +26,15 @@ export interface AuthUser {
   tenantId: string | null;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface TokenPayload {
   sub: string;
   email: string;

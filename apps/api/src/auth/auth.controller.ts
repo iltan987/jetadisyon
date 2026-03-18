@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,6 +11,7 @@ import { minutes, Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtClaims } from '../common/decorators/jwt-claims.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
@@ -16,8 +19,16 @@ import {
   type ChangePasswordDto,
   changePasswordSchema,
 } from './dto/change-password.dto';
+import {
+  type ForgotPasswordDto,
+  forgotPasswordSchema,
+} from './dto/forgot-password.dto';
 import { type LoginDto, loginSchema } from './dto/login.dto';
 import { type RefreshDto, refreshSchema } from './dto/refresh.dto';
+import {
+  type ResetPasswordDto,
+  resetPasswordSchema,
+} from './dto/reset-password.dto';
 import {
   type SetInitialPasswordDto,
   setInitialPasswordSchema,
@@ -79,6 +90,49 @@ export class AuthController {
       user.user_metadata,
       dto,
     );
+  }
+
+  @Post('forgot-password')
+  @Public()
+  @Throttle({ default: { limit: 3, ttl: minutes(15) } })
+  async forgotPassword(
+    @Body(new ZodValidationPipe(forgotPasswordSchema)) dto: ForgotPasswordDto,
+  ) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @Throttle({ default: { limit: 5, ttl: minutes(15) } })
+  async resetPassword(
+    @CurrentUser() user: User,
+    @JwtClaims() claims: Record<string, unknown>,
+    @Body(new ZodValidationPipe(resetPasswordSchema)) dto: ResetPasswordDto,
+  ) {
+    if (!user.email) {
+      throw new UnauthorizedException({
+        code: 'AUTH.USER_NOT_FOUND',
+        message: 'User email not available',
+      });
+    }
+    return this.authService.resetPassword(user.id, user.email, claims, dto);
+  }
+
+  @Post('admin/users/:userId/send-reset-email')
+  @Throttle({ default: { limit: 5, ttl: minutes(15) } })
+  async adminSendResetEmail(
+    @CurrentUser() user: User,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    return this.authService.adminSendResetEmail(user, userId);
+  }
+
+  @Post('admin/users/:userId/force-password-change')
+  @Throttle({ default: { limit: 5, ttl: minutes(15) } })
+  async adminForcePasswordChange(
+    @CurrentUser() user: User,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    return this.authService.adminForcePasswordChange(user, userId);
   }
 
   @Get('me')

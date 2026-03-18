@@ -50,11 +50,15 @@ export class SupabaseAuthGuard implements CanActivate {
     // hook-injected system_role/tenant_role/tenant_id. Read them from the verified JWT claims.
     const { data: claimsData } = await client.auth.getClaims(token);
 
+    const claims: Record<string, unknown> = claimsData?.claims ?? {};
     request.user = {
       ...data.user,
-      app_metadata: claimsData?.claims?.app_metadata ?? data.user.app_metadata,
+      app_metadata:
+        (claims.app_metadata as Record<string, unknown>) ??
+        data.user.app_metadata,
     };
     request.accessToken = token;
+    request.jwtClaims = claims;
     return true;
   }
 }

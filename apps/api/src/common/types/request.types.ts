@@ -5,4 +5,5 @@ export interface AuthenticatedRequest extends Request {
   user: User;
   tenantId: string | null;
   accessToken: string;
+  jwtClaims: Record<string, unknown>;
 }

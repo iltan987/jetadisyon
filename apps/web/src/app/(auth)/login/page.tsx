@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -146,6 +147,15 @@ function LoginForm() {
                 </Field>
               )}
             />
+
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-muted-foreground hover:text-foreground text-sm"
+              >
+                Şifremi Unuttum
+              </Link>
+            </div>
 
             {generalError && (
               <p className="text-destructive text-sm">{generalError}</p>

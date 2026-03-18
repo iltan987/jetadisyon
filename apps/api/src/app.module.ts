@@ -12,7 +12,6 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { SupabaseAuthGuard } from './common/guards/supabase-auth.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { validate } from './config/env.validation';
-import { MailModule } from './mail/mail.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { TenantsModule } from './tenants/tenants.module';
 
@@ -55,7 +54,6 @@ import { TenantsModule } from './tenants/tenants.module';
     SupabaseModule,
     AuthModule,
     TenantsModule,
-    MailModule,
   ],
   controllers: [AppController],
   providers: [

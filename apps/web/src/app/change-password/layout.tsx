@@ -13,10 +13,5 @@ export default async function ChangePasswordLayout({
     redirect('/login');
   }
 
-  // Only allow access when forced password change is required
-  if (claims.must_change_password !== true) {
-    redirect('/dashboard');
-  }
-
   return <>{children}</>;
 }

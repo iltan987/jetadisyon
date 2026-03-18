@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  BarChart3Icon,
-  LayoutDashboardIcon,
-  LogOutIcon,
-  SettingsIcon,
-} from 'lucide-react';
+import { BarChart3Icon, LayoutDashboardIcon, SettingsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -13,6 +8,8 @@ import { Button } from '@repo/ui/components/ui/button';
 import { Separator } from '@repo/ui/components/ui/separator';
 
 import { useAuth } from '@/hooks/use-auth';
+
+import { UserMenu } from './user-menu';
 
 const allNavItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboardIcon },
@@ -32,7 +29,7 @@ const allNavItems = [
 
 export function TenantNav() {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   const navItems = allNavItems.filter(
     (item) =>
@@ -61,14 +58,8 @@ export function TenantNav() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
-          {user && (
-            <span className="text-muted-foreground text-sm">{user.email}</span>
-          )}
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOutIcon className="mr-1.5 h-4 w-4" />
-            Çıkış
-          </Button>
+        <div className="ml-auto">
+          <UserMenu />
         </div>
       </div>
     </header>

@@ -2,11 +2,52 @@
 title: 'Password Management — Self-Service Change, Forgot Password & Admin Reset'
 slug: 'password-management'
 created: '2026-03-17'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
-tech_stack: ['Next.js 16', 'NestJS 11', 'Supabase Auth', 'React Email', 'Nodemailer', 'Zod v4', 'shadcn/ui v4 (base-nova)', 'Tailwind v4', 'lucide-react']
-files_to_modify: ['packages/emails/src/password-reset.tsx', 'packages/emails/package.json', 'apps/api/src/auth/auth.module.ts', 'apps/api/src/auth/auth.controller.ts', 'apps/api/src/auth/auth.service.ts', 'apps/api/src/auth/dto/forgot-password.dto.ts', 'apps/api/src/auth/dto/reset-password.dto.ts', 'apps/api/src/mail/mail.service.ts', 'apps/web/src/app/change-password/layout.tsx', 'apps/web/src/app/(auth)/login/page.tsx', 'apps/web/src/app/(auth)/forgot-password/page.tsx', 'apps/web/src/app/auth/reset-password/route.ts', 'apps/web/src/app/auth/reset-password-expired/page.tsx', 'apps/web/src/app/reset-password/page.tsx', 'apps/web/src/app/reset-password/layout.tsx', 'apps/web/src/app/(tenant)/_components/user-menu.tsx', 'apps/web/src/app/(tenant)/_components/tenant-nav.tsx', 'packages/api/src/auth.types.ts']
-code_patterns: ['@Public() + @Throttle() for public rate-limited endpoints', 'ZodValidationPipe for DTO validation', 'generateLink() + MailService for custom emails', 'Layout-based server component guards (authoritative)', 'supabase.auth.verifyOtp() for token exchange in route handlers', '{data: {...}} response wrapper', 'user_metadata flags set to null to clear', 'shadcn NavUser dropdown pattern for user menu']
+tech_stack:
+  [
+    'Next.js 16',
+    'NestJS 11',
+    'Supabase Auth',
+    'React Email',
+    'Nodemailer',
+    'Zod v4',
+    'shadcn/ui v4 (base-nova)',
+    'Tailwind v4',
+    'lucide-react',
+  ]
+files_to_modify:
+  [
+    'packages/emails/src/password-reset.tsx',
+    'packages/emails/package.json',
+    'apps/api/src/auth/auth.module.ts',
+    'apps/api/src/auth/auth.controller.ts',
+    'apps/api/src/auth/auth.service.ts',
+    'apps/api/src/auth/dto/forgot-password.dto.ts',
+    'apps/api/src/auth/dto/reset-password.dto.ts',
+    'apps/api/src/mail/mail.service.ts',
+    'apps/web/src/app/change-password/layout.tsx',
+    'apps/web/src/app/(auth)/login/page.tsx',
+    'apps/web/src/app/(auth)/forgot-password/page.tsx',
+    'apps/web/src/app/auth/reset-password/route.ts',
+    'apps/web/src/app/auth/reset-password-expired/page.tsx',
+    'apps/web/src/app/reset-password/page.tsx',
+    'apps/web/src/app/reset-password/layout.tsx',
+    'apps/web/src/app/(tenant)/_components/user-menu.tsx',
+    'apps/web/src/app/(tenant)/_components/tenant-nav.tsx',
+    'packages/api/src/auth.types.ts',
+  ]
+code_patterns:
+  [
+    '@Public() + @Throttle() for public rate-limited endpoints',
+    'ZodValidationPipe for DTO validation',
+    'generateLink() + MailService for custom emails',
+    'Layout-based server component guards (authoritative)',
+    'supabase.auth.verifyOtp() for token exchange in route handlers',
+    '{data: {...}} response wrapper',
+    'user_metadata flags set to null to clear',
+    'shadcn NavUser dropdown pattern for user menu',
+  ]
 test_patterns: ['Jest unit tests for services co-located as *.spec.ts']
 ---
 
@@ -71,21 +112,21 @@ Implement three password management capabilities:
 
 ### Files to Reference
 
-| File | Purpose |
-| ---- | ------- |
-| `apps/api/src/auth/auth.controller.ts` | Add 4 new endpoints — follow exact decorator + pipe patterns |
-| `apps/api/src/auth/auth.service.ts` | Add 4 new methods — follow existing error handling + Supabase patterns |
-| `apps/api/src/auth/dto/change-password.dto.ts` | Zod DTO + SYNC comment pattern to replicate |
-| `apps/api/src/mail/mail.service.ts` | Add `sendPasswordResetEmail()` — mirror `sendInvitationEmail()` |
-| `apps/api/src/tenants/tenants.service.ts` | `generateLink()` + `hashed_token` + URL construction reference |
-| `packages/emails/src/invitation.tsx` | React Email template structure to replicate |
-| `packages/emails/package.json` | Add new `./password-reset` export entry |
-| `apps/web/src/app/auth/accept-invite/route.ts` | Route handler token exchange pattern — replicate exactly |
-| `apps/web/src/app/change-password/layout.tsx` | Guard to modify (remove `must_change_password` restriction) |
-| `apps/web/src/app/change-password/page.tsx` | Existing form for reference — reset-password page is similar |
-| `apps/web/src/app/(auth)/login/page.tsx` | Add "Şifremi Unuttum" link |
-| `apps/web/src/app/(tenant)/_components/tenant-nav.tsx` | Replace right-side email+logout with `<UserMenu />` |
-| `packages/api/src/auth.types.ts` | Add shared request types |
+| File                                                   | Purpose                                                                |
+| ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `apps/api/src/auth/auth.controller.ts`                 | Add 4 new endpoints — follow exact decorator + pipe patterns           |
+| `apps/api/src/auth/auth.service.ts`                    | Add 4 new methods — follow existing error handling + Supabase patterns |
+| `apps/api/src/auth/dto/change-password.dto.ts`         | Zod DTO + SYNC comment pattern to replicate                            |
+| `apps/api/src/mail/mail.service.ts`                    | Add `sendPasswordResetEmail()` — mirror `sendInvitationEmail()`        |
+| `apps/api/src/tenants/tenants.service.ts`              | `generateLink()` + `hashed_token` + URL construction reference         |
+| `packages/emails/src/invitation.tsx`                   | React Email template structure to replicate                            |
+| `packages/emails/package.json`                         | Add new `./password-reset` export entry                                |
+| `apps/web/src/app/auth/accept-invite/route.ts`         | Route handler token exchange pattern — replicate exactly               |
+| `apps/web/src/app/change-password/layout.tsx`          | Guard to modify (remove `must_change_password` restriction)            |
+| `apps/web/src/app/change-password/page.tsx`            | Existing form for reference — reset-password page is similar           |
+| `apps/web/src/app/(auth)/login/page.tsx`               | Add "Şifremi Unuttum" link                                             |
+| `apps/web/src/app/(tenant)/_components/tenant-nav.tsx` | Replace right-side email+logout with `<UserMenu />`                    |
+| `packages/api/src/auth.types.ts`                       | Add shared request types                                               |
 
 ### Technical Decisions
 
@@ -106,13 +147,13 @@ Implement three password management capabilities:
 
 **Group 1 — Backend Foundation**
 
-- [ ] **T1: Create password reset email template**
+- [x] **T1: Create password reset email template**
   - File (create): `packages/emails/src/password-reset.tsx`
   - Action: Create React Email template modelled after `invitation.tsx`. Props: `{ resetLink: string }`. Export `PasswordResetEmail` component and `async renderPasswordResetEmail(props)` function. Subject/copy (Turkish): "Şifre sıfırlama bağlantısı geçerlilik süresi 1 saattir." Button text: "Şifremi Sıfırla".
   - File (modify): `packages/emails/package.json`
   - Action: Add to `exports`: `"./password-reset": "./dist/password-reset.js"`. Also update `main` and `types` if needed to keep them pointing to `invitation` (they're the current entry).
 
-- [ ] **T2: Add `sendPasswordResetEmail()` to MailService**
+- [x] **T2: Add `sendPasswordResetEmail()` to MailService**
   - File (modify): `apps/api/src/mail/mail.service.ts`
   - Action: Import `renderPasswordResetEmail` from `@repo/emails/password-reset`. Add method:
     ```ts
@@ -127,7 +168,7 @@ Implement three password management capabilities:
     }
     ```
 
-- [ ] **T3: Create `ForgotPasswordDto` and `ResetPasswordDto`**
+- [x] **T3: Create `ForgotPasswordDto` and `ResetPasswordDto`**
   - File (create): `apps/api/src/auth/dto/forgot-password.dto.ts`
     ```ts
     export const forgotPasswordSchema = z.object({
@@ -138,16 +179,23 @@ Implement three password management capabilities:
   - File (create): `apps/api/src/auth/dto/reset-password.dto.ts`
     ```ts
     // SYNC: Frontend mirrors this at apps/web/src/app/reset-password/page.tsx
-    export const resetPasswordSchema = z.object({
-      newPassword: z.string().min(8, { error: 'Password must be at least 8 characters' }),
-      confirmPassword: z.string().min(8, { error: 'Password must be at least 8 characters' }),
-    }).refine((d) => d.newPassword === d.confirmPassword, {
-      message: 'Passwords do not match', path: ['confirmPassword'],
-    });
+    export const resetPasswordSchema = z
+      .object({
+        newPassword: z
+          .string()
+          .min(8, { error: 'Password must be at least 8 characters' }),
+        confirmPassword: z
+          .string()
+          .min(8, { error: 'Password must be at least 8 characters' }),
+      })
+      .refine((d) => d.newPassword === d.confirmPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
+      });
     export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;
     ```
 
-- [ ] **T4: Add new methods to `AuthService`**
+- [x] **T4: Add new methods to `AuthService`**
   - File (modify): `apps/api/src/auth/auth.service.ts`
   - Action: Inject `MailService` and `ConfigService` in constructor. Resolve `appUrl = config.get('APP_URL', 'http://localhost:3001')` in constructor.
   - Add `async forgotPassword(dto: ForgotPasswordDto)`:
@@ -191,13 +239,14 @@ Implement three password management capabilities:
     - Build: `resetLink = \`${this.appUrl}/auth/reset-password?token_hash=${hashedToken}&type=recovery\``
     - `await this.mailService.sendPasswordResetEmail(email, resetLink)` (caller handles best-effort try/catch)
 
-- [ ] **T5: Update `AuthModule` to import `MailModule`**
+- [x] **T5: Update `AuthModule` to import `MailModule`**
   - File (modify): `apps/api/src/auth/auth.module.ts`
   - Action: Add `MailModule` to the `imports` array so `MailService` is injectable in `AuthService`.
 
-- [ ] **T6: Add new endpoints to `AuthController`**
+- [x] **T6: Add new endpoints to `AuthController`**
   - File (modify): `apps/api/src/auth/auth.controller.ts`
   - Action: Add the following 4 endpoints (import new DTOs + schemas):
+
     ```ts
     @Post('forgot-password')
     @Public()
@@ -236,9 +285,10 @@ Implement three password management capabilities:
       return this.authService.adminForcePasswordChange(user, userId);
     }
     ```
+
   - Notes: Import `Param` and `Headers` from `@nestjs/common`. No `@Roles()` decorator — authorization is handled in service methods.
 
-- [ ] **T7: Update shared auth types**
+- [x] **T7: Update shared auth types**
   - File (modify): `packages/api/src/auth.types.ts`
   - Action: Add two interfaces:
     ```ts
@@ -255,7 +305,7 @@ Implement three password management capabilities:
 
 **Group 2 — Frontend: Recovery Flow**
 
-- [ ] **T8: Create `/auth/reset-password` route handler (token exchange)**
+- [x] **T8: Create `/auth/reset-password` route handler (token exchange)**
   - File (create): `apps/web/src/app/auth/reset-password/route.ts`
   - Action: Mirror `apps/web/src/app/auth/accept-invite/route.ts` exactly, with these differences:
     - Validate `type === 'recovery'` (not `'invite'`)
@@ -265,11 +315,11 @@ Implement three password management capabilities:
   - Critical: Create `NextResponse.redirect(redirectUrl)` FIRST, then wire `createServerClient` cookies to the response, then call `verifyOtp`. Return the redirect response — session cookies are written onto it.
   - **Session conflict guard**: Before calling `verifyOtp()`, check if an existing session is already present (`await supabase.auth.getSession()`). If a session exists (a different or same user is already logged in), call `await supabase.auth.signOut()` first. This prevents a recovery link clicked on a shared browser from silently overwriting a logged-in user's session without their awareness. The recovery flow always starts from a clean authentication state.
 
-- [ ] **T9: Create `/auth/reset-password-expired` error page**
+- [x] **T9: Create `/auth/reset-password-expired` error page**
   - File (create): `apps/web/src/app/auth/reset-password-expired/page.tsx`
   - Action: Simple server component. Shows Turkish error message: "Şifre sıfırlama bağlantısının süresi dolmuş veya geçersiz." with a link to `/forgot-password` ("Yeni bağlantı iste").
 
-- [ ] **T10: Create `/reset-password` page + layout**
+- [x] **T10: Create `/reset-password` page + layout**
   - File (create): `apps/web/src/app/reset-password/layout.tsx`
     - Server component guard
     - Import `getClaims` (or `getUser`) from `@/lib/supabase/server.ts`
@@ -281,12 +331,17 @@ Implement three password management capabilities:
     - Zod schema (SYNC comment for backend `reset-password.dto.ts`):
       ```ts
       // SYNC: Mirrors apps/api/src/auth/dto/reset-password.dto.ts (Turkish error messages)
-      const schema = z.object({
-        newPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır'),
-        confirmPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır'),
-      }).refine((d) => d.newPassword === d.confirmPassword, {
-        message: 'Şifreler eşleşmiyor', path: ['confirmPassword'],
-      });
+      const schema = z
+        .object({
+          newPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır'),
+          confirmPassword: z
+            .string()
+            .min(8, 'Şifre en az 8 karakter olmalıdır'),
+        })
+        .refine((d) => d.newPassword === d.confirmPassword, {
+          message: 'Şifreler eşleşmiyor',
+          path: ['confirmPassword'],
+        });
       ```
     - On submit: `POST /auth/reset-password` via `apiClient`
     - On success: call `supabase.auth.setSession({ access_token, refresh_token })` from response, then `router.replace('/dashboard')`
@@ -296,7 +351,7 @@ Implement three password management capabilities:
 
 **Group 3 — Frontend: Forgot Password Page**
 
-- [ ] **T11: Create `/forgot-password` page**
+- [x] **T11: Create `/forgot-password` page**
   - File (create): `apps/web/src/app/(auth)/forgot-password/page.tsx`
   - Action: Client component (inside `(auth)` group — authenticated users are redirected away by `(auth)/layout.tsx`)
   - Form with single `email` field
@@ -305,12 +360,15 @@ Implement three password management capabilities:
   - After submit (success OR error): switch to success state. Show: "E-postanıza şifre sıfırlama bağlantısı gönderdik. Gelen kutunuzu kontrol edin." — always show this message regardless of API outcome (no email leak).
   - Include link back to login: "Giriş sayfasına dön"
 
-- [ ] **T12: Add "Şifremi Unuttum" link to login page**
+- [x] **T12: Add "Şifremi Unuttum" link to login page**
   - File (modify): `apps/web/src/app/(auth)/login/page.tsx`
   - Action: Add a link below the password field (or between password and submit button):
     ```tsx
     <div className="flex justify-end">
-      <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        href="/forgot-password"
+        className="text-muted-foreground hover:text-foreground text-sm"
+      >
         Şifremi Unuttum
       </Link>
     </div>
@@ -320,15 +378,16 @@ Implement three password management capabilities:
 
 **Group 4 — Frontend: Voluntary Password Change**
 
-- [ ] **T13: Lift change-password layout guard**
+- [x] **T13: Lift change-password layout guard**
   - File (modify): `apps/web/src/app/change-password/layout.tsx`
   - Action: Remove the check `if (!claims.must_change_password) redirect('/dashboard')`. Keep only the unauthenticated redirect: `if (!claims) redirect('/login')`. Any authenticated user can now access `/change-password`.
   - Notes: The page already handles both forced and voluntary modes via `useAuth().mustChangePassword` — when forced, the submit redirects with no back-navigation option; when voluntary, the UX can remain the same (the user chose to be there).
   - **Security clarification**: The forced password change flow security is enforced by `(tenant)/layout.tsx` (the authoritative guard), NOT by the `change-password` layout. `(tenant)/layout.tsx` redirects any user with `must_change_password=true` to `/change-password` before rendering any app route. Removing the guard from `change-password/layout.tsx` does not weaken this — the user is still locked out of all `(tenant)` routes. Non-tenant routes (`/forgot-password`, `/reset-password`, `/auth/*`) are intentionally accessible during forced password change, as they are required to complete recovery flows.
 
-- [ ] **T14: Create `UserMenu` component**
+- [x] **T14: Create `UserMenu` component**
   - File (create): `apps/web/src/app/(tenant)/_components/user-menu.tsx`
   - Action: Client component. Based on shadcn `NavUser` pattern (sidebar-07). Structure:
+
     ```tsx
     'use client';
     // Imports: DropdownMenu + items from @repo/ui, ChevronDownIcon + LockKeyholeIcon + LogOutIcon from lucide-react
@@ -343,13 +402,17 @@ Implement three password management capabilities:
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
-              <span className="max-w-[160px] truncate text-sm">{user?.email}</span>
+              <span className="max-w-[160px] truncate text-sm">
+                {user?.email}
+              </span>
               <ChevronDownIcon className="ml-1 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-sm truncate text-muted-foreground">{user?.email}</p>
+              <p className="text-muted-foreground truncate text-sm">
+                {user?.email}
+              </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push('/change-password')}>
@@ -357,7 +420,10 @@ Implement three password management capabilities:
               Şifremi Değiştir
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              onClick={signOut}
+              className="text-destructive focus:text-destructive"
+            >
               <LogOutIcon className="mr-2 h-4 w-4" />
               Çıkış Yap
             </DropdownMenuItem>
@@ -367,7 +433,7 @@ Implement three password management capabilities:
     }
     ```
 
-- [ ] **T15: Replace inline user controls in `TenantNav` with `UserMenu`**
+- [x] **T15: Replace inline user controls in `TenantNav` with `UserMenu`**
   - File (modify): `apps/web/src/app/(tenant)/_components/tenant-nav.tsx`
   - Action: Remove the `<div className="ml-auto flex items-center gap-2">` block (email span + logout Button). Replace with `<div className="ml-auto"><UserMenu /></div>`. Import `UserMenu` from `./user-menu`. Remove `LogOutIcon` import and the `signOut` destructure from `useAuth()` (if no longer used elsewhere in the component). Keep `useAuth()` import if `user` is still used for nav filtering.
 
@@ -377,37 +443,37 @@ Implement three password management capabilities:
 
 **Forgot Password Flow**
 
-- [ ] **AC1:** Given a user on the login page, when they look at the form, then a "Şifremi Unuttum" link is visible below the password field.
-- [ ] **AC2:** Given a user clicks "Şifremi Unuttum", when the forgot-password page loads, then an email input form is shown (unauthenticated users only; authenticated users are redirected away by `(auth)/layout.tsx`).
-- [ ] **AC3:** Given a user submits a valid email that exists in the system, when the form is submitted, then a password reset email is received with a valid reset link, and the page shows a generic success message.
-- [ ] **AC4:** Given a user submits an email that does NOT exist, when the form is submitted, then the page shows the same generic success message (no indication whether email exists).
-- [ ] **AC5:** Given a user submits an email for an account with `invitation_pending=true`, when the form is submitted, then the page shows the generic success message and NO reset email is sent.
-- [ ] **AC6:** Given a user submits the forgot-password form more than 3 times within 15 minutes, when the 4th request is made, then a 429 Too Many Requests error is returned.
-- [ ] **AC7:** Given a user clicks the reset link in the email, when the route handler processes the `token_hash`, then the user's session is established and they are redirected to `/reset-password`.
-- [ ] **AC8:** Given a user clicks an expired or invalid reset link, when the route handler processes it, then the user is redirected to `/auth/reset-password-expired` which shows an error message and a link to `/forgot-password`.
-- [ ] **AC9:** Given a user is on the `/reset-password` page with a valid session, when they submit a valid new password + matching confirmation, then their password is updated, session is refreshed with new tokens, and they are redirected to `/dashboard`.
-- [ ] **AC10:** Given a user submits mismatched passwords on the `/reset-password` page, when the form is validated, then a "Şifreler eşleşmiyor" error is shown inline.
-- [ ] **AC11:** Given a user with `must_change_password=true` resets their password via the recovery flow, when `POST /auth/reset-password` completes, then `must_change_password` is cleared from their metadata and they are not redirected to `/change-password`.
-- [ ] **AC11b:** Given an authenticated user with a normal password-login session (not a recovery session) calls `POST /auth/reset-password`, when the AMR check runs, then a 403 Forbidden is returned with code `AUTH.RECOVERY_SESSION_REQUIRED`.
+- [x] **AC1:** Given a user on the login page, when they look at the form, then a "Şifremi Unuttum" link is visible below the password field.
+- [x] **AC2:** Given a user clicks "Şifremi Unuttum", when the forgot-password page loads, then an email input form is shown (unauthenticated users only; authenticated users are redirected away by `(auth)/layout.tsx`).
+- [x] **AC3:** Given a user submits a valid email that exists in the system, when the form is submitted, then a password reset email is received with a valid reset link, and the page shows a generic success message.
+- [x] **AC4:** Given a user submits an email that does NOT exist, when the form is submitted, then the page shows the same generic success message (no indication whether email exists).
+- [x] **AC5:** Given a user submits an email for an account with `invitation_pending=true`, when the form is submitted, then the page shows the generic success message and NO reset email is sent.
+- [x] **AC6:** Given a user submits the forgot-password form more than 3 times within 15 minutes, when the 4th request is made, then a 429 Too Many Requests error is returned.
+- [x] **AC7:** Given a user clicks the reset link in the email, when the route handler processes the `token_hash`, then the user's session is established and they are redirected to `/reset-password`.
+- [x] **AC8:** Given a user clicks an expired or invalid reset link, when the route handler processes it, then the user is redirected to `/auth/reset-password-expired` which shows an error message and a link to `/forgot-password`.
+- [x] **AC9:** Given a user is on the `/reset-password` page with a valid session, when they submit a valid new password + matching confirmation, then their password is updated, session is refreshed with new tokens, and they are redirected to `/dashboard`.
+- [x] **AC10:** Given a user submits mismatched passwords on the `/reset-password` page, when the form is validated, then a "Şifreler eşleşmiyor" error is shown inline.
+- [x] **AC11:** Given a user with `must_change_password=true` resets their password via the recovery flow, when `POST /auth/reset-password` completes, then `must_change_password` is cleared from their metadata and they are not redirected to `/change-password`.
+- [x] **AC11b:** Given an authenticated user with a normal password-login session (not a recovery session) calls `POST /auth/reset-password`, when the AMR check runs, then a 403 Forbidden is returned with code `AUTH.RECOVERY_SESSION_REQUIRED`.
 
 **Voluntary Password Change**
 
-- [ ] **AC12:** Given an authenticated user in the tenant app, when they look at the header, then a user menu dropdown is visible showing their email.
-- [ ] **AC13:** Given a user opens the user menu, when they see the dropdown, then "Şifremi Değiştir" and "Çıkış Yap" items are present.
-- [ ] **AC14:** Given a user clicks "Şifremi Değiştir" in the user menu, when the navigation occurs, then they land on `/change-password` page.
-- [ ] **AC15:** Given an authenticated user navigates directly to `/change-password` (without `must_change_password=true`), when the page loads, then it renders successfully (no redirect to dashboard).
-- [ ] **AC16:** Given an unauthenticated user navigates to `/change-password`, when the page layout guard runs, then they are redirected to `/login`.
-- [ ] **AC17:** Given a user with `must_change_password=true` in the tenant layout, when the guard checks claims, then they are still redirected to `/change-password` (existing forced flow unaffected).
+- [x] **AC12:** Given an authenticated user in the tenant app, when they look at the header, then a user menu dropdown is visible showing their email.
+- [x] **AC13:** Given a user opens the user menu, when they see the dropdown, then "Şifremi Değiştir" and "Çıkış Yap" items are present.
+- [x] **AC14:** Given a user clicks "Şifremi Değiştir" in the user menu, when the navigation occurs, then they land on `/change-password` page.
+- [x] **AC15:** Given an authenticated user navigates directly to `/change-password` (without `must_change_password=true`), when the page loads, then it renders successfully (no redirect to dashboard).
+- [x] **AC16:** Given an unauthenticated user navigates to `/change-password`, when the page layout guard runs, then they are redirected to `/login`.
+- [x] **AC17:** Given a user with `must_change_password=true` in the tenant layout, when the guard checks claims, then they are still redirected to `/change-password` (existing forced flow unaffected).
 
 **Admin Reset**
 
-- [ ] **AC18:** Given a platform admin calls `POST /auth/admin/users/:userId/send-reset-email`, when the user exists without a pending invitation, then a password reset email is sent to the target user and `{ data: { message: '...' } }` is returned.
-- [ ] **AC19:** Given a platform admin calls `POST /auth/admin/users/:userId/force-password-change`, when the call succeeds, then the target user's `must_change_password` is set to `true` and on their next login they are blocked from the app until they change their password.
-- [ ] **AC20:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for a user in their tenant (staff or employee), when the call is made, then it succeeds and a reset email is sent.
-- [ ] **AC21:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for a user in a DIFFERENT tenant, when the call is made, then a 403 Forbidden is returned.
-- [ ] **AC22:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for another owner in the same tenant, when the call is made, then a 403 Forbidden is returned.
-- [ ] **AC23:** Given a staff or employee user calls any `admin` endpoint, when the call is made, then a 403 Forbidden is returned.
-- [ ] **AC24:** Given a platform admin calls `POST /auth/admin/users/:userId/send-reset-email` for a user with `invitation_pending=true`, when the call is made, then a 400 Bad Request with code `AUTH.INVITATION_PENDING` is returned.
+- [x] **AC18:** Given a platform admin calls `POST /auth/admin/users/:userId/send-reset-email`, when the user exists without a pending invitation, then a password reset email is sent to the target user and `{ data: { message: '...' } }` is returned.
+- [x] **AC19:** Given a platform admin calls `POST /auth/admin/users/:userId/force-password-change`, when the call succeeds, then the target user's `must_change_password` is set to `true` and on their next login they are blocked from the app until they change their password.
+- [x] **AC20:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for a user in their tenant (staff or employee), when the call is made, then it succeeds and a reset email is sent.
+- [x] **AC21:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for a user in a DIFFERENT tenant, when the call is made, then a 403 Forbidden is returned.
+- [x] **AC22:** Given a tenant owner calls `POST /auth/admin/users/:userId/send-reset-email` for another owner in the same tenant, when the call is made, then a 403 Forbidden is returned.
+- [x] **AC23:** Given a staff or employee user calls any `admin` endpoint, when the call is made, then a 403 Forbidden is returned.
+- [x] **AC24:** Given a platform admin calls `POST /auth/admin/users/:userId/send-reset-email` for a user with `invitation_pending=true`, when the call is made, then a 400 Bad Request with code `AUTH.INVITATION_PENDING` is returned.
 
 ---
 
@@ -423,11 +489,13 @@ Implement three password management capabilities:
 ### Testing Strategy
 
 **Unit tests (AuthService)**
+
 - `forgotPassword()`: mock `getClient().auth.admin.generateLink` — test (1) non-existent user returns success, (2) `invitation_pending=true` returns success without sending email, (3) valid user generates link and sends email.
 - `adminForcePasswordChange()`: test (1) admin can force any user, (2) owner can force staff in same tenant, (3) owner cannot force user in different tenant (throws 403), (4) owner cannot force another owner (throws 403).
 - `authorizeAdminAction()`: unit test all 4 authorization paths.
 
 **Manual testing checklist**
+
 1. Forgot password with real email → check Supabase local inbox (port 54325 Inbucket)
 2. Click link in email → verify redirect to `/reset-password` with session
 3. Submit new password → verify redirect to `/dashboard` with working session
@@ -445,3 +513,55 @@ Implement three password management capabilities:
 - **Admin UI for tenant owners**: The `adminSendResetEmail` and `adminForcePasswordChange` endpoints are ready now but there is no tenant owner UI to trigger them. This UI will be built in Story 1.5 (staff management). The platform admin UI location (admin panel) is TBD.
 - **`apiClient` and unauthenticated calls**: `POST /auth/forgot-password` is `@Public()` — the `SupabaseAuthGuard` is bypassed entirely, so no Bearer token is required. Before implementing T11, read `apps/web/src/lib/api-client.ts` to verify it sends the request without throwing when no session exists (no `getSession()` call in the request path, or a graceful null-token path). If `apiClient` throws without a session, use a plain `fetch()` call for this specific page only.
 - **Email content**: Turkish copy. Subject: "JetAdisyon - Şifre Sıfırlama". Body: indicate the link expires in 1 hour. Match styling of `invitation.tsx` exactly (same Tailwind config, same color scheme).
+
+---
+
+## Implementation Deviations (Code Review)
+
+The following deviations from the original spec were made during implementation. Documented here for traceability.
+
+### Architecture: `MailModule` changed from `@Global()` to per-module import
+
+`MailModule` was previously a global module (imported once in `AppModule`). It was changed to a regular module requiring explicit import by consuming modules. This is the more idiomatic NestJS pattern (explicit dependencies). Affected files:
+
+- `apps/api/src/mail/mail.module.ts` — removed `@Global()` decorator
+- `apps/api/src/app.module.ts` — removed `MailModule` from imports
+- `apps/api/src/auth/auth.module.ts` — added `MailModule` import
+- `apps/api/src/tenants/tenants.module.ts` — added `MailModule` import
+
+### Architecture: `JwtClaims` decorator replaces manual JWT base64 decoding
+
+The spec prescribed extracting the Bearer token via `@Headers('authorization')`, stripping the prefix, and manually decoding the JWT base64 payload to read AMR claims. The implementation instead modified the auth guard to store full JWT claims via Supabase's `getClaims()` API, and created a `@JwtClaims()` decorator. This avoids manual base64 decoding and uses the official Supabase API. Affected files:
+
+- `apps/api/src/common/guards/supabase-auth.guard.ts` — stores `request.jwtClaims` from `getClaims()`
+- `apps/api/src/common/types/request.types.ts` — added `jwtClaims` property
+- `apps/api/src/common/decorators/jwt-claims.decorator.ts` — new `@JwtClaims()` decorator
+
+### Security: Additional safeguards not in original spec
+
+- `ParseUUIDPipe` on admin endpoint `:userId` params — prevents non-UUID values
+- Self-target prevention in `authorizeAdminAction` — admins cannot reset their own account
+- `@Throttle()` on admin endpoints (5/15min) — rate limits admin actions
+- `invitation_pending` check on `adminForcePasswordChange` — prevents forcing password change on uninvited users
+- AMR check in `reset-password/layout.tsx` — server-side guard prevents navigation without recovery session
+- `encodeURIComponent()` on `hashed_token` in URL construction (also applied to existing invitation flow in `tenants.service.ts`)
+
+### Error handling: `adminSendResetEmail` email failure (code review fix)
+
+Added try/catch around `sendRecoveryEmail()` in `adminSendResetEmail()` with specific error code `AUTH.EMAIL_SEND_FAILED`. Previously, email failures would produce a generic 500.
+
+### Env validation: `APP_URL` upgraded to `z.url()` (code review fix)
+
+Changed from `z.string()` to `z.url()` for consistency with `SUPABASE_URL` validation.
+
+### Additional files modified (not in original `files_to_modify`)
+
+- `apps/api/src/app.module.ts`
+- `apps/api/src/auth/auth.service.spec.ts`
+- `apps/api/src/common/guards/supabase-auth.guard.ts`
+- `apps/api/src/common/types/request.types.ts`
+- `apps/api/src/common/decorators/jwt-claims.decorator.ts`
+- `apps/api/src/mail/mail.module.ts`
+- `apps/api/src/tenants/tenants.module.ts`
+- `apps/api/src/tenants/tenants.service.ts`
+- `apps/web/src/lib/api-client.ts`

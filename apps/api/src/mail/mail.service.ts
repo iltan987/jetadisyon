@@ -4,6 +4,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { createTransport, type Transporter } from 'nodemailer';
 
 import { renderInvitationEmail } from '@repo/emails/invitation';
+import { renderPasswordResetEmail } from '@repo/emails/password-reset';
 
 @Injectable()
 export class MailService {
@@ -49,5 +50,18 @@ export class MailService {
     });
 
     this.logger.info({ to, tenantName }, 'Invitation email sent');
+  }
+
+  async sendPasswordResetEmail(to: string, resetLink: string) {
+    const html = await renderPasswordResetEmail({ resetLink });
+
+    await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject: 'JetAdisyon - Şifre Sıfırlama',
+      html,
+    });
+
+    this.logger.info({ to }, 'Password reset email sent');
   }
 }

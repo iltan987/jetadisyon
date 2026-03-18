@@ -26,6 +26,18 @@ const ERROR_MESSAGES: Record<string, string> = {
   'AUTH.NOT_INVITATION_USER':
     'Bu işlem sadece davet edilen kullanıcılar içindir.',
   'AUTH.PASSWORD_UPDATE_FAILED': 'Şifre güncellenemedi. Lütfen tekrar deneyin.',
+  'AUTH.PASSWORD_RESET_FAILED': 'Şifre sıfırlanamadı. Lütfen tekrar deneyin.',
+  'AUTH.RECOVERY_SESSION_REQUIRED':
+    'Bu işlem sadece şifre sıfırlama bağlantısı ile erişilebilir.',
+  'AUTH.USER_NOT_FOUND': 'Kullanıcı bulunamadı.',
+  'AUTH.INVITATION_PENDING':
+    'Kullanıcı henüz davetini kabul etmemiş. Davetiyeyi tekrar gönderin.',
+  'AUTH.FORCE_RESET_FAILED':
+    'Şifre değiştirme zorunluluğu oluşturulamadı. Lütfen tekrar deneyin.',
+  'AUTH.SERVICE_UNAVAILABLE':
+    'Kimlik doğrulama servisi geçici olarak kullanılamıyor.',
+  'AUTH.EMAIL_SEND_FAILED':
+    'Şifre sıfırlama e-postası gönderilemedi. Lütfen tekrar deneyin.',
 };
 
 interface ApiError {
