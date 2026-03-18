@@ -9,7 +9,8 @@
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,mts,mjs,json,md,css}\"",
-    "clean": "turbo run clean && rm -rf node_modules .turbo"
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "supabase": "supabase"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
