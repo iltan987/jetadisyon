@@ -141,7 +141,7 @@ export class TenantsService {
 
       // Step 6: Send invitation email via Nodemailer (best-effort — tenant is
       // already created, admin can resend if email delivery fails)
-      const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${hashedToken}&type=invite`;
+      const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${encodeURIComponent(hashedToken)}&type=invite`;
       let emailSent = false;
       try {
         await this.mailService.sendInvitationEmail(
@@ -349,7 +349,7 @@ export class TenantsService {
       });
     }
 
-    const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${linkData.properties.hashed_token}&type=invite`;
+    const inviteLink = `${this.appUrl}/auth/accept-invite?token_hash=${encodeURIComponent(linkData.properties.hashed_token)}&type=invite`;
     await this.mailService.sendInvitationEmail(
       ownerEmail,
       inviteLink,
