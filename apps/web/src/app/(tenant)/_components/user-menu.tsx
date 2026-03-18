@@ -7,6 +7,7 @@ import { Button } from '@repo/ui/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -26,21 +27,19 @@ export function UserMenu() {
         <ChevronDownIcon className="ml-1 h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <p className="text-muted-foreground truncate text-sm">
-            {user?.email}
-          </p>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <p className="text-muted-foreground truncate text-sm">
+              {user?.email}
+            </p>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push('/change-password')}>
           <LockKeyholeIcon className="mr-2 h-4 w-4" />
           Şifremi Değiştir
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={signOut}
-          className="text-destructive focus:text-destructive"
-        >
+        <DropdownMenuItem onClick={signOut} variant="destructive">
           <LogOutIcon className="mr-2 h-4 w-4" />
           Çıkış Yap
         </DropdownMenuItem>
