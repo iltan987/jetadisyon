@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { Separator } from '@repo/ui/components/ui/separator';
@@ -26,8 +27,12 @@ export default async function AdminLayout({
     redirect('/');
   }
 
+  const cookieStore = await cookies();
+  const sidebarState = cookieStore.get('sidebar_state')?.value;
+  const defaultOpen = sidebarState !== 'false';
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <AdminSidebar />
       <SidebarInset>
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">

@@ -23,7 +23,7 @@ import {
   SidebarRail,
 } from '@repo/ui/components/ui/sidebar';
 
-import { ThemeToggle } from '@/components/theme-toggle';
+import { NavUser } from '@/components/nav-user';
 
 const navItems = [
   { title: 'Genel Bakış', href: '/admin/overview', icon: LayoutDashboardIcon },
@@ -67,7 +67,7 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <ThemeToggle />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

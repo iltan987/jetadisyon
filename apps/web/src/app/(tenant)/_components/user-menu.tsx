@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/components/ui/dropdown-menu';
 
+import { ThemeSubmenu } from '@/components/theme-submenu';
 import { useAuth } from '@/hooks/use-auth';
 
 export function UserMenu() {
@@ -34,6 +35,8 @@ export function UserMenu() {
             </p>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <ThemeSubmenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push('/change-password')}>
           <LockKeyholeIcon className="mr-2 h-4 w-4" />

@@ -52,7 +52,8 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { session, setMustChangePassword } = useAuth();
+  const { user, session, mustChangePassword, setMustChangePassword } =
+    useAuth();
   const [generalError, setGeneralError] = useState('');
 
   const form = useForm<ChangePasswordFormValues>({
@@ -92,7 +93,9 @@ export default function ChangePasswordPage() {
       setMustChangePassword(false);
       toast.success('Şifre başarıyla değiştirildi');
       router.refresh();
-      router.push('/dashboard');
+      router.push(
+        user?.systemRole === 'admin' ? '/admin/overview' : '/dashboard',
+      );
     } catch (err) {
       if (err instanceof ApiClientError) {
         if (err.code === 'AUTH.INVALID_CREDENTIALS') {
@@ -115,7 +118,9 @@ export default function ChangePasswordPage() {
           <CardHeader>
             <CardTitle className="text-xl">Şifre Değiştir</CardTitle>
             <CardDescription>
-              İlk giriş için şifrenizi değiştirmeniz gerekmektedir
+              {mustChangePassword
+                ? 'İlk giriş için şifrenizi değiştirmeniz gerekmektedir'
+                : 'Şifrenizi buradan değiştirebilirsiniz'}
             </CardDescription>
           </CardHeader>
           <CardContent>
