@@ -1,4 +1,7 @@
-import { isValidPhoneNumber } from 'libphonenumber-js';
+import {
+  isValidPhoneNumber,
+  parsePhoneNumberWithError,
+} from 'libphonenumber-js';
 import { z } from 'zod';
 
 export const createTenantSchema = z.object({
@@ -18,7 +21,8 @@ export const createTenantSchema = z.object({
     .transform((v) => v || undefined)
     .refine((v) => !v || isValidPhoneNumber(v), {
       error: 'Valid phone number required (e.g., +905551234567)',
-    }),
+    })
+    .transform((v) => (v ? parsePhoneNumberWithError(v).format('E.164') : v)),
 });
 
 export type CreateTenantDto = z.infer<typeof createTenantSchema>;

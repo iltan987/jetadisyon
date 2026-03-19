@@ -45,11 +45,24 @@ import {
   ChevronRight as ChevronRightIcon,
   ChevronsLeft,
   ChevronsRight,
+  ClipboardList,
+  Copy,
   GripVertical,
   Search,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@repo/ui/components/ui/context-menu';
+
+// ─── Re-exported types (so consumers don't need @tanstack/react-table) ───────
+
+export { type ColumnDef, type FilterFn } from '@tanstack/react-table';
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -96,7 +109,7 @@ function SortIcon({ direction }: { direction: 'asc' | 'desc' | false }) {
             transition={{ duration: 0.1 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <ArrowUpDown className="h-3 w-3 text-slate-300" />
+            <ArrowUpDown className="text-muted-foreground/50 h-3 w-3" />
           </motion.span>
         )}
         {direction === 'asc' && (
@@ -108,7 +121,7 @@ function SortIcon({ direction }: { direction: 'asc' | 'desc' | false }) {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <ArrowUp className="h-3 w-3 text-slate-600" />
+            <ArrowUp className="text-foreground h-3 w-3" />
           </motion.span>
         )}
         {direction === 'desc' && (
@@ -120,7 +133,7 @@ function SortIcon({ direction }: { direction: 'asc' | 'desc' | false }) {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <ArrowDown className="h-3 w-3 text-slate-600" />
+            <ArrowDown className="text-foreground h-3 w-3" />
           </motion.span>
         )}
       </AnimatePresence>
@@ -161,14 +174,14 @@ function DraggableHeader<TData>({
         {...listeners}
         type="button"
         aria-label="Drag to reorder column"
-        className="shrink-0 cursor-grab touch-none rounded p-0.5 text-slate-300 hover:text-slate-400 active:cursor-grabbing"
+        className="text-muted-foreground/50 hover:text-muted-foreground shrink-0 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
       >
         <GripVertical className="h-3 w-3" />
       </button>
       <button
         type="button"
         onClick={header.column.getToggleSortingHandler()}
-        className="flex items-center text-xs font-semibold tracking-wide text-slate-400 uppercase transition-colors duration-100 hover:text-slate-600"
+        className="text-muted-foreground hover:text-foreground flex items-center text-xs font-semibold tracking-wide uppercase transition-colors duration-100"
       >
         {flexRender(header.column.columnDef.header, header.getContext())}
         <SortIcon direction={header.column.getIsSorted()} />
@@ -190,6 +203,27 @@ function BodyCell<TData>({
   dimmed?: boolean;
   animate?: boolean;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const getCellText = useCallback(
+    () =>
+      contentRef.current?.textContent?.trim() ?? String(cell.getValue() ?? ''),
+    [cell],
+  );
+
+  const getHeaderText = useCallback(
+    () => String(cell.column.columnDef.header ?? cell.column.id),
+    [cell.column],
+  );
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(getCellText());
+  }, [getCellText]);
+
+  const handleCopyWithHeader = useCallback(() => {
+    navigator.clipboard.writeText(`${getHeaderText()}\n${getCellText()}`);
+  }, [getCellText, getHeaderText]);
+
   return (
     <div
       style={{
@@ -201,9 +235,25 @@ function BodyCell<TData>({
           : 'opacity 150ms',
         opacity: dimmed ? 0 : 1,
       }}
-      className="shrink-0 overflow-hidden pr-4"
+      className="shrink-0 overflow-hidden pr-4 select-text"
     >
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      <ContextMenu>
+        <ContextMenuTrigger className="select-text">
+          <div ref={contentRef}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onClick={handleCopy}>
+            <Copy className="h-4 w-4" />
+            Copy
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleCopyWithHeader}>
+            <ClipboardList className="h-4 w-4" />
+            Copy with Header
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     </div>
   );
 }
@@ -224,11 +274,11 @@ function ColumnDragOverlay<TData>({
   return (
     <div
       style={{ width: columnWidths[columnId] }}
-      className="flex cursor-grabbing flex-col overflow-hidden rounded-lg border border-slate-300 bg-white opacity-[0.97] shadow-2xl"
+      className="bg-background border-border flex cursor-grabbing flex-col overflow-hidden rounded-lg border opacity-[0.97] shadow-2xl"
     >
-      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-100 px-4 py-3">
-        <GripVertical className="h-3 w-3 shrink-0 text-slate-400" />
-        <span className="text-xs font-semibold tracking-wide text-slate-600 uppercase">
+      <div className="bg-muted border-border flex items-center gap-1 border-b px-4 py-3">
+        <GripVertical className="text-muted-foreground h-3 w-3 shrink-0" />
+        <span className="text-foreground text-xs font-semibold tracking-wide uppercase">
           {headerInst
             ? flexRender(
                 headerInst.column.columnDef.header,
@@ -242,7 +292,7 @@ function ColumnDragOverlay<TData>({
         return (
           <div
             key={row.id}
-            className="overflow-hidden border-b border-slate-100 px-3 py-3.5 last:border-0"
+            className="border-border/50 overflow-hidden border-b px-3 py-3.5 last:border-0"
           >
             {cell
               ? flexRender(cell.column.columnDef.cell, cell.getContext())
@@ -323,10 +373,14 @@ export function DataTable<TData>({
       }
       if (activeIdx < overIdx) {
         result[colId] =
-          idx > activeIdx && idx <= overIdx ? -(columnWidths[activeColumnId] ?? 0) : 0;
+          idx > activeIdx && idx <= overIdx
+            ? -(columnWidths[activeColumnId] ?? 0)
+            : 0;
       } else {
         result[colId] =
-          idx >= overIdx && idx < activeIdx ? (columnWidths[activeColumnId] ?? 0) : 0;
+          idx >= overIdx && idx < activeIdx
+            ? (columnWidths[activeColumnId] ?? 0)
+            : 0;
       }
     });
     return result;
@@ -410,17 +464,17 @@ export function DataTable<TData>({
       <div className="mb-4 flex shrink-0 items-center gap-3">
         {/* Search */}
         <div className="relative max-w-xs flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pr-8 pl-9 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-300 focus:outline-none"
+            className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-lg border py-2 pr-8 pl-9 text-sm focus:ring-2 focus:outline-none"
           />
           {globalFilter && (
             <button
               onClick={() => setGlobalFilter('')}
-              className="absolute top-1/2 right-2.5 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2.5 -translate-y-1/2"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -429,15 +483,15 @@ export function DataTable<TData>({
 
         {/* Tab filter */}
         {filterTabs && (
-          <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
+          <div className="bg-muted flex items-center gap-1 rounded-lg p-1">
             {allTabs.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => handleTabFilter(tab.value)}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
                   activeTabValue === tab.value
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tab.label}
@@ -447,7 +501,7 @@ export function DataTable<TData>({
         )}
 
         {/* Count */}
-        <span className="ml-auto text-sm text-slate-400 tabular-nums">
+        <span className="text-muted-foreground ml-auto text-sm tabular-nums">
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={totalFiltered}
@@ -466,7 +520,7 @@ export function DataTable<TData>({
       </div>
 
       {/* ── Table card ───────────────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
+      <div className="border-border flex flex-1 flex-col overflow-hidden rounded-xl border">
         <DndContext
           id="data-table-dnd"
           sensors={sensors}
@@ -483,10 +537,10 @@ export function DataTable<TData>({
           {/* Header — no scrollbar, synced horizontally with body via JS */}
           <div
             ref={headerScrollRef}
-            className="shrink-0 overflow-hidden border-b border-slate-200"
+            className="border-border shrink-0 overflow-hidden border-b"
           >
             <div className="min-w-max">
-              <div className="flex items-center bg-slate-50 px-4 py-3">
+              <div className="bg-muted flex items-center px-4 py-3">
                 {hasExpand && <div className="w-9 shrink-0" />}
                 <SortableContext
                   items={columnOrder}
@@ -507,10 +561,6 @@ export function DataTable<TData>({
           {/* Body — owns both scrollbars */}
           <div onScroll={syncHeaderScroll} className="flex-1 overflow-auto">
             <div className="min-w-max">
-              {/* key={pageIndex}: when page changes React tears down this subtree
-                  instantly (no exit animations), preventing row overlap / scrollbar flash.
-                  relative+overflow-hidden: clips absolute-positioned exiting rows from
-                  popLayout so they never reach the scroll container. */}
               <div key={pageIndex} className="relative overflow-hidden">
                 <AnimatePresence mode="popLayout" initial={false}>
                   {rows.length === 0 ? (
@@ -519,7 +569,7 @@ export function DataTable<TData>({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="py-16 text-center text-sm text-slate-400"
+                      className="text-muted-foreground py-16 text-center text-sm"
                     >
                       No results found.
                     </motion.div>
@@ -537,7 +587,7 @@ export function DataTable<TData>({
                             duration: 0.18,
                             ease: [0.25, 0.46, 0.45, 0.94],
                           }}
-                          className="border-b border-slate-100 last:border-0"
+                          className="border-border/50 border-b last:border-0"
                         >
                           <div
                             role={hasExpand ? 'button' : undefined}
@@ -557,12 +607,12 @@ export function DataTable<TData>({
                             }}
                             className={`flex items-center px-4 py-3.5 transition-colors duration-100 select-none ${
                               hasExpand ? 'cursor-pointer' : ''
-                            } ${isExpanded ? 'bg-slate-50/80' : hasExpand ? 'hover:bg-slate-50/60' : ''}`}
+                            } ${isExpanded ? 'bg-muted/50' : hasExpand ? 'hover:bg-muted/40' : ''}`}
                           >
                             {hasExpand && (
                               <div className="flex w-9 shrink-0 justify-center">
                                 <ChevronRight
-                                  className={`h-4 w-4 text-slate-300 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                                  className={`text-muted-foreground/50 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
                                 />
                               </div>
                             )}
@@ -618,13 +668,13 @@ export function DataTable<TData>({
         </DndContext>
 
         {/* ── Pagination ───────────────────────────────────────────────── */}
-        <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="bg-muted border-border flex shrink-0 items-center justify-between border-t px-4 py-3">
+          <div className="text-muted-foreground flex items-center gap-2 text-sm">
             <span>Per page</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 focus:ring-2 focus:ring-slate-300 focus:outline-none"
+              className="border-input bg-background text-foreground focus:ring-ring rounded-md border px-2 py-1 text-sm focus:ring-2 focus:outline-none"
             >
               {pageSizeOptions.map((n) => (
                 <option key={n} value={n}>
@@ -639,7 +689,7 @@ export function DataTable<TData>({
             <button
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
-              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="First page"
             >
               <ChevronsLeft className="h-4 w-4" />
@@ -647,7 +697,7 @@ export function DataTable<TData>({
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -660,8 +710,8 @@ export function DataTable<TData>({
                   onClick={() => table.setPageIndex(i)}
                   className={`h-8 min-w-8 rounded-md px-2 text-sm font-medium transition-colors ${
                     i === pageIndex
-                      ? 'bg-slate-900 text-white'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   {i + 1}
@@ -672,7 +722,7 @@ export function DataTable<TData>({
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Next page"
             >
               <ChevronRightIcon className="h-4 w-4" />
@@ -680,14 +730,14 @@ export function DataTable<TData>({
             <button
               onClick={() => table.setPageIndex(pageCount - 1)}
               disabled={!table.getCanNextPage()}
-              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-30"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Last page"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
 
-          <span className="text-sm text-slate-500 tabular-nums">
+          <span className="text-muted-foreground text-sm tabular-nums">
             {pageIndex * pageSize + 1}–
             {Math.min((pageIndex + 1) * pageSize, totalFiltered)} /{' '}
             {totalFiltered}

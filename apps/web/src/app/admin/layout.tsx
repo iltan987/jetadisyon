@@ -39,7 +39,7 @@ export default async function AdminLayout({
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4!" />
         </header>
-        <div className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col overflow-hidden p-4 md:p-6">
           {children}
         </div>
       </SidebarInset>
