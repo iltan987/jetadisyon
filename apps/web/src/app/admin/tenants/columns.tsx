@@ -149,7 +149,7 @@ export function getColumns(
     },
     {
       id: 'actions',
-      header: '',
+      header: 'İşlemler',
       enableSorting: false,
       cell: ({ row: { original: t } }) => (
         <TooltipProvider delay={300}>

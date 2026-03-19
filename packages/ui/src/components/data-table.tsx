@@ -3,7 +3,6 @@
 import {
   closestCenter,
   DndContext,
-  type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
   KeyboardSensor,
@@ -31,6 +30,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   type Header,
+  type RowData,
   type SortingState,
   type Table,
   useReactTable,
@@ -42,16 +42,25 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  ChevronRight as ChevronRightIcon,
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
   Copy,
   GripVertical,
+  MoreHorizontal,
   Search,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   ContextMenu,
@@ -59,6 +68,16 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@repo/ui/components/ui/context-menu';
+
+// ─── Column meta augmentation ────────────────────────────────────────────────
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /** Set to false to exclude this column from drag-and-drop reordering. Defaults to true. */
+    enableColumnReorder?: boolean;
+  }
+}
 
 // ─── Re-exported types (so consumers don't need @tanstack/react-table) ───────
 
@@ -92,6 +111,34 @@ export interface DataTableProps<TData> {
   pageSizeOptions?: number[];
   /** Appended to the "X / Y" count. E.g. "records" → "12 / 20 records" */
   totalLabel?: string;
+}
+
+// ─── Column transform context (syncs header dnd-kit transforms → body cells) ─
+
+type ColumnTransformMap = Record<string, number>;
+
+const ColumnTransformContext = createContext<{
+  transforms: ColumnTransformMap;
+  report: (columnId: string, x: number) => void;
+}>({ transforms: {}, report: () => {} });
+
+function useColumnTransformReporter() {
+  const [transforms, setTransforms] = useState<ColumnTransformMap>({});
+  const latestRef = useRef<ColumnTransformMap>({});
+
+  const report = useCallback((columnId: string, x: number) => {
+    const prev = latestRef.current[columnId];
+    if (prev === x) return;
+    latestRef.current = { ...latestRef.current, [columnId]: x };
+    setTransforms(latestRef.current);
+  }, []);
+
+  const reset = useCallback(() => {
+    latestRef.current = {};
+    setTransforms({});
+  }, []);
+
+  return { transforms, report, reset };
 }
 
 // ─── Internal subcomponents ───────────────────────────────────────────────────
@@ -141,6 +188,23 @@ function SortIcon({ direction }: { direction: 'asc' | 'desc' | false }) {
   );
 }
 
+function HeaderContent<TData>({ header }: { header: Header<TData, unknown> }) {
+  return header.column.getCanSort() ? (
+    <button
+      type="button"
+      onClick={header.column.getToggleSortingHandler()}
+      className="text-muted-foreground hover:text-foreground flex items-center text-xs font-semibold tracking-wide uppercase transition-colors duration-100"
+    >
+      {flexRender(header.column.columnDef.header, header.getContext())}
+      <SortIcon direction={header.column.getIsSorted()} />
+    </button>
+  ) : (
+    <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+      {flexRender(header.column.columnDef.header, header.getContext())}
+    </span>
+  );
+}
+
 function DraggableHeader<TData>({
   header,
   columnWidths,
@@ -148,6 +212,7 @@ function DraggableHeader<TData>({
   header: Header<TData, unknown>;
   columnWidths: Record<string, number>;
 }) {
+  const { report } = useContext(ColumnTransformContext);
   const {
     attributes,
     listeners,
@@ -158,6 +223,13 @@ function DraggableHeader<TData>({
   } = useSortable({
     id: header.column.id,
   });
+
+  // Sync dnd-kit's transform to body cells via context (layout effect to avoid 1-frame lag)
+  const transformX = transform?.x ?? 0;
+  useLayoutEffect(() => {
+    report(header.column.id, transformX);
+  }, [report, header.column.id, transformX]);
+
   return (
     <div
       ref={setNodeRef}
@@ -178,14 +250,24 @@ function DraggableHeader<TData>({
       >
         <GripVertical className="h-3 w-3" />
       </button>
-      <button
-        type="button"
-        onClick={header.column.getToggleSortingHandler()}
-        className="text-muted-foreground hover:text-foreground flex items-center text-xs font-semibold tracking-wide uppercase transition-colors duration-100"
-      >
-        {flexRender(header.column.columnDef.header, header.getContext())}
-        <SortIcon direction={header.column.getIsSorted()} />
-      </button>
+      <HeaderContent header={header} />
+    </div>
+  );
+}
+
+function StaticHeader<TData>({
+  header,
+  columnWidths,
+}: {
+  header: Header<TData, unknown>;
+  columnWidths: Record<string, number>;
+}) {
+  return (
+    <div
+      style={{ width: columnWidths[header.column.id] }}
+      className="flex shrink-0 items-center gap-1 pr-4"
+    >
+      <HeaderContent header={header} />
     </div>
   );
 }
@@ -193,16 +275,16 @@ function DraggableHeader<TData>({
 function BodyCell<TData>({
   cell,
   columnWidths,
-  translateX,
   dimmed,
   animate,
 }: {
   cell: Cell<TData, unknown>;
   columnWidths: Record<string, number>;
-  translateX?: number;
   dimmed?: boolean;
   animate?: boolean;
 }) {
+  const { transforms } = useContext(ColumnTransformContext);
+  const translateX = transforms[cell.column.id] ?? 0;
   const contentRef = useRef<HTMLDivElement>(null);
 
   const getCellText = useCallback(
@@ -228,8 +310,7 @@ function BodyCell<TData>({
     <div
       style={{
         width: columnWidths[cell.column.id],
-        transform:
-          translateX != null ? `translateX(${translateX}px)` : undefined,
+        transform: translateX ? `translateX(${translateX}px)` : undefined,
         transition: animate
           ? 'transform 250ms ease, opacity 150ms'
           : 'opacity 150ms',
@@ -304,6 +385,33 @@ function ColumnDragOverlay<TData>({
   );
 }
 
+// ─── Pagination helper ───────────────────────────────────────────────────────
+
+/** Returns page indices to render, with 'ellipsis' gaps. Max 7 slots. */
+function getPageRange(current: number, total: number): (number | 'ellipsis')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+
+  const pages: (number | 'ellipsis')[] = [];
+  const first = 0;
+  const last = total - 1;
+
+  // Always show first
+  pages.push(first);
+
+  if (current <= 2) {
+    // Near start: 0 1 2 3 ... last
+    pages.push(1, 2, 3, 'ellipsis', last);
+  } else if (current >= last - 2) {
+    // Near end: 0 ... last-3 last-2 last-1 last
+    pages.push('ellipsis', last - 3, last - 2, last - 1, last);
+  } else {
+    // Middle: 0 ... prev current next ... last
+    pages.push('ellipsis', current - 1, current, current + 1, 'ellipsis', last);
+  }
+
+  return pages;
+}
+
 // ─── DataTable ────────────────────────────────────────────────────────────────
 
 export function DataTable<TData>({
@@ -333,6 +441,15 @@ export function DataTable<TData>({
   const [pageSize, setPageSize] = useState(defaultPageSize);
 
   const headerScrollRef = useRef<HTMLDivElement>(null);
+  const {
+    transforms: columnTransforms,
+    report: reportTransform,
+    reset: resetTransforms,
+  } = useColumnTransformReporter();
+  const transformCtx = useMemo(
+    () => ({ transforms: columnTransforms, report: reportTransform }),
+    [columnTransforms, reportTransform],
+  );
 
   const hasExpand = !!renderExpand;
 
@@ -360,31 +477,20 @@ export function DataTable<TData>({
     table.setPageIndex(0);
   }
 
-  const columnTransforms = useMemo(() => {
-    if (!activeColumnId || !overColumnId || activeColumnId === overColumnId)
-      return {} as Record<string, number>;
-    const activeIdx = columnOrder.indexOf(activeColumnId);
-    const overIdx = columnOrder.indexOf(overColumnId);
-    const result: Record<string, number> = {};
-    columnOrder.forEach((colId, idx) => {
-      if (colId === activeColumnId) {
-        result[colId] = 0;
-        return;
-      }
-      if (activeIdx < overIdx) {
-        result[colId] =
-          idx > activeIdx && idx <= overIdx
-            ? -(columnWidths[activeColumnId] ?? 0)
-            : 0;
-      } else {
-        result[colId] =
-          idx >= overIdx && idx < activeIdx
-            ? (columnWidths[activeColumnId] ?? 0)
-            : 0;
-      }
-    });
-    return result;
-  }, [activeColumnId, overColumnId, columnOrder, columnWidths]);
+  const nonReorderableColumnIds = useMemo(
+    () =>
+      new Set(
+        columns
+          .filter((c) => c.meta?.enableColumnReorder === false)
+          .map((c) => c.id!),
+      ),
+    [columns],
+  );
+
+  const reorderableColumnIds = useMemo(
+    () => columnOrder.filter((id) => !nonReorderableColumnIds.has(id)),
+    [columnOrder, nonReorderableColumnIds],
+  );
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -433,22 +539,39 @@ export function DataTable<TData>({
   }
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveColumnId(event.active.id as string);
-    setOverColumnId(event.active.id as string);
+    const id = event.active.id as string;
+    if (nonReorderableColumnIds.has(id)) return;
+    setActiveColumnId(id);
+    setOverColumnId(id);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  function handleDragEnd() {
+    const finalOver = overColumnId;
     setActiveColumnId(null);
     setOverColumnId(null);
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setColumnOrder((prev) =>
-        arrayMove(
-          prev,
-          prev.indexOf(active.id as string),
-          prev.indexOf(over.id as string),
-        ),
-      );
+    resetTransforms();
+    if (activeColumnId && finalOver && activeColumnId !== finalOver) {
+      setColumnOrder((prev) => {
+        // Rearrange only reorderable columns, keep locked at their indices
+        const reorderable = prev.filter(
+          (id) => !nonReorderableColumnIds.has(id),
+        );
+        const fromIdx = reorderable.indexOf(activeColumnId);
+        const toIdx = reorderable.indexOf(finalOver);
+        const newReorderable = arrayMove(reorderable, fromIdx, toIdx);
+
+        // Merge back: locked columns stay at original indices
+        const result: string[] = [];
+        let ri = 0;
+        for (const colId of prev) {
+          if (nonReorderableColumnIds.has(colId)) {
+            result.push(colId);
+          } else {
+            result.push(newReorderable[ri++]!);
+          }
+        }
+        return result;
+      });
     }
   }
 
@@ -527,144 +650,159 @@ export function DataTable<TData>({
           collisionDetection={closestCenter}
           modifiers={[restrictToHorizontalAxis]}
           onDragStart={handleDragStart}
-          onDragOver={(e) => setOverColumnId((e.over?.id as string) ?? null)}
+          onDragOver={(e) => {
+            const overId = (e.over?.id as string) ?? null;
+            // Non-reorderable columns are walls — keep the last valid target
+            if (overId && nonReorderableColumnIds.has(overId)) return;
+            setOverColumnId(overId);
+          }}
           onDragEnd={handleDragEnd}
           onDragCancel={() => {
             setActiveColumnId(null);
             setOverColumnId(null);
+            resetTransforms();
           }}
         >
-          {/* Header — no scrollbar, synced horizontally with body via JS */}
-          <div
-            ref={headerScrollRef}
-            className="border-border shrink-0 overflow-hidden border-b"
-          >
-            <div className="min-w-max">
-              <div className="bg-muted flex items-center px-4 py-3">
-                {hasExpand && <div className="w-9 shrink-0" />}
-                <SortableContext
-                  items={columnOrder}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {headers.map((header) => (
-                    <DraggableHeader
-                      key={header.id}
-                      header={header}
-                      columnWidths={columnWidths}
-                    />
-                  ))}
-                </SortableContext>
+          <ColumnTransformContext.Provider value={transformCtx}>
+            {/* Header — no scrollbar, synced horizontally with body via JS */}
+            <div
+              ref={headerScrollRef}
+              className="border-border shrink-0 overflow-hidden border-b"
+            >
+              <div className="min-w-max">
+                <div className="bg-muted flex items-center px-4 py-3">
+                  {hasExpand && <div className="w-9 shrink-0" />}
+                  <SortableContext
+                    items={reorderableColumnIds}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {headers.map((header) =>
+                      nonReorderableColumnIds.has(header.column.id) ? (
+                        <StaticHeader
+                          key={header.id}
+                          header={header}
+                          columnWidths={columnWidths}
+                        />
+                      ) : (
+                        <DraggableHeader
+                          key={header.id}
+                          header={header}
+                          columnWidths={columnWidths}
+                        />
+                      ),
+                    )}
+                  </SortableContext>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Body — owns both scrollbars */}
-          <div onScroll={syncHeaderScroll} className="flex-1 overflow-auto">
-            <div className="min-w-max">
-              <div key={pageIndex} className="relative overflow-hidden">
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {rows.length === 0 ? (
-                    <motion.div
-                      key="empty"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-muted-foreground py-16 text-center text-sm"
-                    >
-                      No results found.
-                    </motion.div>
-                  ) : (
-                    rows.map((row) => {
-                      const isExpanded = expandedId === row.id;
-                      return (
-                        <motion.div
-                          key={row.id}
-                          layout="position"
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.98 }}
-                          transition={{
-                            duration: 0.18,
-                            ease: [0.25, 0.46, 0.45, 0.94],
-                          }}
-                          className="border-border/50 border-b last:border-0"
-                        >
-                          <div
-                            role={hasExpand ? 'button' : undefined}
-                            tabIndex={hasExpand ? 0 : undefined}
-                            onClick={() =>
-                              hasExpand &&
-                              setExpandedId(isExpanded ? null : row.id)
-                            }
-                            onKeyDown={(e) => {
-                              if (
-                                hasExpand &&
-                                (e.key === 'Enter' || e.key === ' ')
-                              ) {
-                                e.preventDefault();
-                                setExpandedId(isExpanded ? null : row.id);
-                              }
+            {/* Body — owns both scrollbars */}
+            <div onScroll={syncHeaderScroll} className="flex-1 overflow-auto">
+              <div className="min-w-max">
+                <div key={pageIndex} className="relative overflow-hidden">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {rows.length === 0 ? (
+                      <motion.div
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-muted-foreground py-16 text-center text-sm"
+                      >
+                        No results found.
+                      </motion.div>
+                    ) : (
+                      rows.map((row) => {
+                        const isExpanded = expandedId === row.id;
+                        return (
+                          <motion.div
+                            key={row.id}
+                            layout="position"
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{
+                              duration: 0.18,
+                              ease: [0.25, 0.46, 0.45, 0.94],
                             }}
-                            className={`flex items-center px-4 py-3.5 transition-colors duration-100 select-none ${
-                              hasExpand ? 'cursor-pointer' : ''
-                            } ${isExpanded ? 'bg-muted/50' : hasExpand ? 'hover:bg-muted/40' : ''}`}
+                            className="border-border/50 border-b last:border-0"
                           >
-                            {hasExpand && (
-                              <div className="flex w-9 shrink-0 justify-center">
-                                <ChevronRight
-                                  className={`text-muted-foreground/50 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                                />
-                              </div>
-                            )}
-                            {row.getVisibleCells().map((cell) => (
-                              <BodyCell
-                                key={cell.id}
-                                cell={cell}
-                                columnWidths={columnWidths}
-                                translateX={columnTransforms[cell.column.id]}
-                                dimmed={activeColumnId === cell.column.id}
-                                animate={activeColumnId !== null}
-                              />
-                            ))}
-                          </div>
-
-                          {hasExpand && (
-                            <AnimatePresence initial={false}>
-                              {isExpanded && (
-                                <motion.div
-                                  key="panel"
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{
-                                    duration: 0.22,
-                                    ease: 'easeInOut',
-                                  }}
-                                  style={{ overflow: 'hidden' }}
-                                >
-                                  {renderExpand!(row.original)}
-                                </motion.div>
+                            <div
+                              role={hasExpand ? 'button' : undefined}
+                              tabIndex={hasExpand ? 0 : undefined}
+                              onClick={() =>
+                                hasExpand &&
+                                setExpandedId(isExpanded ? null : row.id)
+                              }
+                              onKeyDown={(e) => {
+                                if (
+                                  hasExpand &&
+                                  (e.key === 'Enter' || e.key === ' ')
+                                ) {
+                                  e.preventDefault();
+                                  setExpandedId(isExpanded ? null : row.id);
+                                }
+                              }}
+                              className={`flex items-center px-4 py-3.5 transition-colors duration-100 select-none ${
+                                hasExpand ? 'cursor-pointer' : ''
+                              } ${isExpanded ? 'bg-muted/50' : hasExpand ? 'hover:bg-muted/40' : ''}`}
+                            >
+                              {hasExpand && (
+                                <div className="flex w-9 shrink-0 justify-center">
+                                  <ChevronRight
+                                    className={`text-muted-foreground/50 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                                  />
+                                </div>
                               )}
-                            </AnimatePresence>
-                          )}
-                        </motion.div>
-                      );
-                    })
-                  )}
-                </AnimatePresence>
+                              {row.getVisibleCells().map((cell) => (
+                                <BodyCell
+                                  key={cell.id}
+                                  cell={cell}
+                                  columnWidths={columnWidths}
+                                  dimmed={activeColumnId === cell.column.id}
+                                  animate={activeColumnId !== null}
+                                />
+                              ))}
+                            </div>
+
+                            {hasExpand && (
+                              <AnimatePresence initial={false}>
+                                {isExpanded && (
+                                  <motion.div
+                                    key="panel"
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{
+                                      duration: 0.22,
+                                      ease: 'easeInOut',
+                                    }}
+                                    style={{ overflow: 'hidden' }}
+                                  >
+                                    {renderExpand!(row.original)}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
-          </div>
 
-          <DragOverlay dropAnimation={null}>
-            {activeColumnId ? (
-              <ColumnDragOverlay
-                columnId={activeColumnId}
-                table={table}
-                columnWidths={columnWidths}
-              />
-            ) : null}
-          </DragOverlay>
+            <DragOverlay dropAnimation={null}>
+              {activeColumnId ? (
+                <ColumnDragOverlay
+                  columnId={activeColumnId}
+                  table={table}
+                  columnWidths={columnWidths}
+                />
+              ) : null}
+            </DragOverlay>
+          </ColumnTransformContext.Provider>
         </DndContext>
 
         {/* ── Pagination ───────────────────────────────────────────────── */}
@@ -704,19 +842,28 @@ export function DataTable<TData>({
             </button>
 
             <div className="mx-1 flex items-center gap-1">
-              {Array.from({ length: pageCount }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => table.setPageIndex(i)}
-                  className={`h-8 min-w-8 rounded-md px-2 text-sm font-medium transition-colors ${
-                    i === pageIndex
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+              {getPageRange(pageIndex, pageCount).map((item, idx) =>
+                item === 'ellipsis' ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="text-muted-foreground flex h-8 min-w-8 items-center justify-center"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => table.setPageIndex(item)}
+                    className={`h-8 min-w-8 rounded-md px-2 text-sm font-medium transition-colors ${
+                      item === pageIndex
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {item + 1}
+                  </button>
+                ),
+              )}
             </div>
 
             <button
@@ -725,7 +872,7 @@ export function DataTable<TData>({
               className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Next page"
             >
-              <ChevronRightIcon className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => table.setPageIndex(pageCount - 1)}
