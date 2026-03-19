@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -46,6 +47,15 @@ export class TenantsController {
     @AccessToken() accessToken: string,
   ) {
     return this.tenantsService.findById(tenantId, user, accessToken);
+  }
+
+  @Delete(':tenantId')
+  @Roles('admin')
+  async remove(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.tenantsService.deleteTenant(tenantId, user.id);
   }
 
   @Post(':tenantId/resend-invitation')

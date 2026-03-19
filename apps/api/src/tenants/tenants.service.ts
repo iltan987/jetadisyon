@@ -269,6 +269,59 @@ export class TenantsService {
     };
   }
 
+  async deleteTenant(tenantId: string, adminUserId: string) {
+    const client = this.supabaseService.getClient();
+
+    // Verify tenant exists
+    const { data: tenant, error: tenantError } = await client
+      .from('tenants')
+      .select('id, name')
+      .eq('id', tenantId)
+      .single()
+      .overrideTypes<{ id: string; name: string }>();
+
+    if (tenantError || !tenant) {
+      throw new NotFoundException({
+        code: 'TENANT.NOT_FOUND',
+        message: 'Tenant not found',
+      });
+    }
+
+    // Delete tenant row (tenant_memberships cascade via DB FK)
+    const { error: deleteError } = await client
+      .from('tenants')
+      .delete()
+      .eq('id', tenantId);
+
+    if (deleteError) {
+      this.logger.error({ deleteError, tenantId }, 'Failed to delete tenant');
+      throw new InternalServerErrorException({
+        code: 'TENANT.DELETE_FAILED',
+        message: 'Failed to delete tenant',
+      });
+    }
+
+    // Audit log (best-effort)
+    const { error: auditError } = await client.from('audit_logs').insert({
+      actor_id: adminUserId,
+      action: 'DELETE_TENANT',
+      entity_type: 'TENANT',
+      entity_id: tenantId,
+      metadata: { business_name: tenant.name },
+    });
+
+    if (auditError) {
+      this.logger.error(
+        { auditError, action: 'DELETE_TENANT', entityId: tenantId },
+        'Failed to write audit log for critical action',
+      );
+    }
+
+    this.logger.info({ tenantId, tenantName: tenant.name }, 'Tenant deleted');
+
+    return { data: { id: tenantId } };
+  }
+
   async resendInvitation(tenantId: string) {
     const client = this.supabaseService.getClient();
 

@@ -26,9 +26,8 @@ import { apiClient, ApiClientError } from '@/lib/api-client';
 
 const forgotPasswordSchema = z.object({
   email: z
-    .string()
-    .min(1, { error: 'E-posta gereklidir' })
-    .email({ error: 'Geçerli bir e-posta girin' }),
+    .email({ error: 'Geçerli bir e-posta girin' })
+    .min(1, { error: 'E-posta gereklidir' }),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
