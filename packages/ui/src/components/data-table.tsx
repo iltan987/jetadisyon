@@ -245,7 +245,7 @@ function DraggableHeader<TData>({
         {...attributes}
         {...listeners}
         type="button"
-        aria-label="Drag to reorder column"
+        aria-label="Sütunu yeniden sıralamak için sürükle"
         className="text-muted-foreground/50 hover:text-muted-foreground shrink-0 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
       >
         <GripVertical className="h-3 w-3" />
@@ -327,11 +327,11 @@ function BodyCell<TData>({
         <ContextMenuContent>
           <ContextMenuItem onClick={handleCopy}>
             <Copy className="h-4 w-4" />
-            Copy
+            Kopyala
           </ContextMenuItem>
           <ContextMenuItem onClick={handleCopyWithHeader}>
             <ClipboardList className="h-4 w-4" />
-            Copy with Header
+            Başlıkla Kopyala
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -419,7 +419,7 @@ export function DataTable<TData>({
   columns,
   columnWidths,
   getRowId,
-  searchPlaceholder = 'Search…',
+  searchPlaceholder = 'Ara…',
   globalFilterFn,
   filterTabs,
   renderExpand,
@@ -461,7 +461,7 @@ export function DataTable<TData>({
 
   const allTabs = filterTabs
     ? [
-        { value: 'all', label: filterTabs.allLabel ?? 'All' },
+        { value: 'all', label: filterTabs.allLabel ?? 'Tümü' },
         ...filterTabs.options,
       ]
     : [];
@@ -709,7 +709,7 @@ export function DataTable<TData>({
                         exit={{ opacity: 0 }}
                         className="text-muted-foreground py-16 text-center text-sm"
                       >
-                        No results found.
+                        Sonuç bulunamadı.
                       </motion.div>
                     ) : (
                       rows.map((row) => {
@@ -808,7 +808,7 @@ export function DataTable<TData>({
         {/* ── Pagination ───────────────────────────────────────────────── */}
         <div className="bg-muted border-border flex shrink-0 items-center justify-between border-t px-4 py-3">
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <span>Per page</span>
+            <span>Sayfa başına</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
@@ -820,7 +820,7 @@ export function DataTable<TData>({
                 </option>
               ))}
             </select>
-            <span>rows</span>
+            <span>satır</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -828,7 +828,7 @@ export function DataTable<TData>({
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
               className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="First page"
+              aria-label="İlk sayfa"
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
@@ -836,7 +836,7 @@ export function DataTable<TData>({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
               className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="Previous page"
+              aria-label="Önceki sayfa"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -870,7 +870,7 @@ export function DataTable<TData>({
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="Next page"
+              aria-label="Sonraki sayfa"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -878,7 +878,7 @@ export function DataTable<TData>({
               onClick={() => table.setPageIndex(pageCount - 1)}
               disabled={!table.getCanNextPage()}
               className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="Last page"
+              aria-label="Son sayfa"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>
