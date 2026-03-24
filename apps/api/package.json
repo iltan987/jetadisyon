@@ -23,7 +23,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@repo/api": "workspace:*",
     "@repo/emails": "workspace:*",
-    "@supabase/supabase-js": "^2.99.2",
+    "@supabase/supabase-js": "^2.100.0",
     "libphonenumber-js": "^1.12.40",
     "nestjs-pino": "^4.6.1",
     "nodemailer": "^8.0.3",

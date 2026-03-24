@@ -28,12 +28,12 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sonarjs": "^4.0.2",
-    "eslint-plugin-turbo": "^2.8.18",
+    "eslint-plugin-turbo": "^2.8.20",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript-eslint": "^8.57.1"
+    "typescript-eslint": "^8.57.2"
   },
   "scripts": {
     "clean": "rm -rf node_modules .turbo"
