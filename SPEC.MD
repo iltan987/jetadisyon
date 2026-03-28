@@ -102,10 +102,42 @@ During development: use ngrok to expose localhost:3456. ngrok provides HTTPS aut
 
 ## OFFLINE RULES — CRITICAL
 
-1. All order processing (receive, accept, print, sound) runs entirely locally. Never depends on cloud.
-2. Webhooks queue on relay during internet outage and replay on reconnect. App handles replayed webhooks gracefully via deduplication.
-3. License check: ping Supabase on startup, cache result locally with timestamp. If unreachable, use cache. Block only if cache is invalid AND unreachable for more than 48 hours.
-4. Never show an error or block the user during an outage mid-session.
+### Auto-accept is only safe when both conditions are met
+Auto-accepting an order dispatches a carrier. If the kitchen has no printed ticket, the order is confirmed but unknown to the restaurant — this is worse than a missed acceptance. Auto-accept must be gated.
+
+**Auto-accept decision flow:**
+```
+New order arrives via relay WebSocket
+  └─> Is relay WebSocket connected and stable?   NO → do NOT accept, queue for manual review
+        ↓ YES
+  └─> Is printer reachable?                      NO → do NOT accept, alert owner
+        ↓ YES
+  └─> Auto-accept + print + sound
+```
+
+**Relay connection loss:**
+- App monitors the WebSocket to the relay server continuously
+- If connection drops for more than 10 seconds, flip to offline mode
+- Show persistent dashboard warning in Turkish: "⚠️ Bağlantı kesildi — siparişler otomatik onaylanmıyor"
+- Play a distinct alert sound (different from new order sound) so owner knows
+- Small grace period of 10 seconds before triggering — prevents false alarms on micro-blips
+- When relay reconnects, replayed/queued orders go to manual review queue, NOT auto-accept
+- Owner must explicitly accept or reject each queued order
+
+**Printer failure:**
+- On app startup, ping the configured printer
+- If printer is unreachable, disable auto-accept immediately and show warning
+- Periodically re-check printer status (every 60 seconds)
+- Re-enable auto-accept automatically when printer comes back online
+
+**License check (cloud only — never blocks operations):**
+- Ping Supabase on startup, cache result locally with timestamp
+- If unreachable, use cached result
+- Block app only if cache is invalid AND Supabase unreachable for more than 48 hours
+- Never interrupt an active session for license reasons
+
+### General rule
+All order processing (receive, accept, print, sound) runs locally. Cloud unavailability never stops order processing — only relay or printer failure does.
 
 ---
 
