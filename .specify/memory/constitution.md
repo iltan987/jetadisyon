@@ -87,8 +87,20 @@ Each platform is a NestJS module in `packages/backend/src/platforms/`. No platfo
 ### Cloud Supabase (business data only)
 - Entities: restaurants, licenses
 - All changes via `supabase migration new` — never via the dashboard
-- Use Supabase RLS + Auth — desktop app authenticates with stored session token, not raw DB credentials
+- Use Supabase RLS + Auth — email + password only; no OAuth, no roles, no multi-user
 - License check: pings Supabase on startup, caches result locally with timestamp; blocks app only if cache is invalid AND Supabase unreachable for more than 48 hours; never interrupts an active session
+
+### Authentication flow
+- Auth happens once — on first launch via a setup wizard
+- Session token stored locally via `electron-store` (encrypted)
+- Every subsequent launch: read local token → silently refresh → boot normally
+- Owner never sees a login screen again unless they reinstall
+- No auth-related UI beyond the first-launch setup wizard
+
+### Account management
+- Restaurant accounts are created manually by the developer/operator — no self-serve signup, not in MVP, not ever
+- No password reset flow in MVP — handle manually if needed
+- For scale: a simple internal admin dashboard (separate tool, not part of this app)
 
 ---
 
@@ -154,4 +166,4 @@ This constitution is derived from SPEC.md and CLAUDE.md, which are user-managed 
 
 All implementation decisions must be verifiable against SPEC.md. If SPEC.md does not cover a decision, the user must be asked — the constitution does not fill gaps on its own.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-29 | **Last Amended**: 2026-03-29
+**Version**: 1.1.0 | **Ratified**: 2026-03-29 | **Last Amended**: 2026-03-29

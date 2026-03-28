@@ -205,8 +205,21 @@ Managed via Supabase CLI migrations, not the dashboard directly.
 **Entities:** restaurants, licenses.
 
 Use Supabase RLS (Row Level Security) — restrict data access per restaurant.
-Use Supabase Auth — restaurant owner authenticates once during initial setup.
-Desktop app authenticates with Supabase using the stored session token, not raw DB credentials.
+Use Supabase Auth — email + password only. No OAuth. No roles. No multi-user.
+
+### Authentication flow
+
+Auth happens once — on first launch via a setup wizard.
+App authenticates with Supabase, stores session token locally via `electron-store` (encrypted).
+Every subsequent launch: read local token → silently refresh → boot normally.
+Owner never sees a login screen again unless they reinstall.
+No auth-related UI beyond the first-launch setup wizard.
+
+### Account management
+
+Restaurant accounts are created manually by the developer/operator — no self-serve signup, not in MVP, not ever.
+For scale: a simple internal admin dashboard (separate tool, not part of this app).
+No password reset flow in MVP — handle manually if needed.
 
 ---
 
