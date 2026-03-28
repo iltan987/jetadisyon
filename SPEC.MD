@@ -23,8 +23,9 @@ A secondary feature generates a daily AI summary of order statistics in Turkish.
 | Frontend | React + Vite — rendered inside Electron BrowserWindow |
 | Language | TypeScript strict mode everywhere — no `any` |
 | Local DB | SQLite via Prisma |
-| Cloud DB | Supabase (managed, not self-hosted) |
+| Cloud DB | Supabase — local CLI + Docker for dev, cloud project for production |
 | Package manager | pnpm with workspaces |
+| UI components | shadcn/ui + Tailwind CSS |
 | AI | TBD — design behind an interface, do not implement provider yet |
 | Printer | TBD — research ESC/POS library options before implementing |
 | Styling | Tailwind CSS — no inline styles, no CSS modules |
@@ -34,38 +35,45 @@ A secondary feature generates a daily AI summary of order statistics in Turkish.
 
 ## REPO STRUCTURE
 
-This is a pnpm monorepo. Three packages: `electron`, `backend`, `frontend`. One `shared` package for types.
+pnpm monorepo. Four packages: `electron`, `backend`, `frontend`, `shared`.
+No separate `ui` package — shadcn components live inside `packages/frontend`.
+Extract to `packages/ui` only if a second frontend is added in the future.
 
 ```
 jetadisyon/
 ├── packages/
 │   ├── electron/          # Electron main process + IPC handlers
 │   ├── backend/           # NestJS app (localhost:3456)
-│   ├── frontend/          # React + Vite
-│   └── shared/            # Shared TypeScript types only
+│   ├── frontend/          # React + Vite + shadcn/ui
+│   └── shared/            # Shared TypeScript types only — no logic
+├── supabase/              # Supabase CLI project
+│   ├── migrations/        # All schema migrations — version controlled
+│   └── seed.sql           # Dev seed data
+├── .mcp.json              # MCP server config — in .gitignore
 ├── SPEC.md
+├── CLAUDE.md
 ├── .env.example
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
-Keep each package independent. `frontend` and `backend` must not import from each other directly — frontend calls backend over HTTP only. `shared` types can be imported by any package.
+`frontend` and `backend` must not import from each other directly.
+Frontend calls backend over HTTP only.
+`shared` types can be imported by any package.
 
 ---
 
 ## ARCHITECTURE
 
-Two separate concerns. Keep them clean.
-
 ### Local (restaurant PC)
 - Electron shell manages app lifecycle and hardware access (sound, printer via IPC)
 - NestJS runs on localhost:3456, handles all business logic
 - SQLite stores all operational data
-- App must work fully offline — see OFFLINE RULES below
+- App must work fully offline — see OFFLINE RULES
 
 ### Cloud (your infrastructure)
 - Supabase handles only: restaurant accounts, license keys, subscription status
-- One simple REST endpoint the app pings on startup to validate license
+- One REST endpoint the app pings on startup to validate license
 - Nothing operational depends on cloud being reachable
 
 ### Order flow
@@ -81,24 +89,63 @@ Platform webhook → POST /webhooks/:platform
 ```
 
 ### Webhook relay (production only)
-Platforms POST to a public HTTPS URL. In production, restaurants are behind home/business routers with no public IP. Solution: a lightweight relay server (Node.js, deployed on a VPS) that:
+Platforms POST to a public HTTPS URL. Restaurants are behind home/business routers with no public IP.
+Solution: lightweight relay server (Node.js, VPS) that:
 - Receives webhook POSTs from platforms
 - Queues them durably
-- Forwards to the local app via persistent WebSocket
+- Forwards to local app via persistent WebSocket
 - Retries queued webhooks when app reconnects after outage
 
-During development: use ngrok to expose localhost:3456 publicly. ngrok provides HTTPS automatically.
+During development: use ngrok to expose localhost:3456. ngrok provides HTTPS automatically.
 
 ---
 
 ## OFFLINE RULES — CRITICAL
 
-These rules are non-negotiable. Do not implement anything that violates them.
-
 1. All order processing (receive, accept, print, sound) runs entirely locally. Never depends on cloud.
-2. Platform webhooks arrive via relay server — if restaurant internet is down, webhooks queue on relay and replay on reconnect. The app must handle replayed/delayed webhooks gracefully (idempotency via deduplication).
-3. License check: on startup ping Supabase, cache result locally with timestamp. If Supabase unreachable, use cached result. Only block app if cache is invalid AND has been unreachable for more than 48 hours.
+2. Webhooks queue on relay during internet outage and replay on reconnect. App handles replayed webhooks gracefully via deduplication.
+3. License check: ping Supabase on startup, cache result locally with timestamp. If unreachable, use cache. Block only if cache is invalid AND unreachable for more than 48 hours.
 4. Never show an error or block the user during an outage mid-session.
+
+---
+
+## SUPABASE SETUP
+
+### Local development
+- Use Supabase CLI + Docker: `supabase start`
+- Local studio at `http://localhost:54323`
+- Local API at `http://localhost:54321`
+- All schema changes via migrations: `supabase migration new <name>`
+- Migrations are version controlled in `supabase/migrations/`
+- TypeScript types generated from local schema: `supabase gen types typescript`
+
+### Production
+- Cloud Supabase project (free tier is sufficient)
+- Migrations pushed via: `supabase db push --linked`
+- Never edit cloud schema manually — always via migrations
+
+### MCP server config (in .mcp.json — gitignored)
+Point at local instance during development:
+```json
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "npx",
+      "args": ["shadcn@latest", "registry:mcp"]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y", "@supabase/mcp-server-supabase@latest",
+        "--supabase-url", "http://localhost:54321",
+        "--access-token", "<local-service-role-key>"
+      ]
+    }
+  }
+}
+```
+Swap to cloud credentials for production debugging.
+Never commit `.mcp.json` — add to `.gitignore`.
 
 ---
 
@@ -106,33 +153,35 @@ These rules are non-negotiable. Do not implement anything that violates them.
 
 ### Local SQLite — operational data only
 
-Define schema in `packages/backend/prisma/schema.prisma`.
-Fields shown below are starting points — add/remove as needed during implementation.
-Do not over-engineer upfront. Start minimal, migrate as requirements become clear.
+Defined in `packages/backend/prisma/schema.prisma`.
+Fields are starting points — add/remove as needed during implementation.
+Start minimal. Migrate as requirements become clear.
 
-**Entities needed:**
-- `Order` — one record per incoming order. Must have platform identifier + platform's own order ID. Unique constraint on (platform, platformOrderId) for deduplication.
-- `PlatformCredential` — stores API credentials per platform. Fields vary per platform — use a flexible structure (e.g. a JSON column for platform-specific fields).
-- `DailySummary` — one record per day, stores AI-generated text + raw stats JSON.
+**Entities:**
+- `Order` — one record per incoming order. Unique constraint on (platform, platformOrderId) for deduplication.
+- `PlatformCredential` — API credentials per platform. Use a flexible JSON column for platform-specific fields since credential shapes vary per platform.
+- `DailySummary` — one record per day. AI-generated text + raw stats JSON.
 - `AppSettings` — single-row config (working hours, printer, sound toggle).
-- `LicenseCache` — single-row cache of last Supabase license check result + timestamp.
+- `LicenseCache` — single-row cache of last Supabase license check + timestamp.
 
-Do not add timestamps to every table by default. Add them only where they serve a real purpose.
+Do not add timestamps to every table by default. Add only where they serve a real purpose.
 
 ### Cloud Supabase — business data only
 
-Managed via Supabase dashboard, not tracked in this repo.
-Entities: restaurants, licenses.
-Use Supabase RLS (Row Level Security) to restrict data access per restaurant.
-Authentication via Supabase Auth — restaurant owner logs in once during initial setup.
-The desktop app authenticates with Supabase using the stored session token, not raw DB credentials.
+Managed via Supabase CLI migrations, not the dashboard directly.
+
+**Entities:** restaurants, licenses.
+
+Use Supabase RLS (Row Level Security) — restrict data access per restaurant.
+Use Supabase Auth — restaurant owner authenticates once during initial setup.
+Desktop app authenticates with Supabase using the stored session token, not raw DB credentials.
 
 ---
 
 ## PLATFORM INTEGRATIONS
 
 Each platform is a NestJS module in `packages/backend/src/platforms/`.
-All platform modules implement this interface — do not skip this:
+All modules implement this interface — mandatory:
 
 ```typescript
 interface IPlatformAdapter {
@@ -143,24 +192,33 @@ interface IPlatformAdapter {
 }
 ```
 
-**Platforms to integrate (no priority order — implement whichever has API access first):**
-- Yemeksepeti — Partner API via Delivery Hero middleware
-- Trendyol Go — `developers.tgoapps.com`
-- Getir — `developers.getir.com`
-- Migros Yemek — API access path TBD
+**Platforms (no priority order — implement whichever has API access first):**
+- Yemeksepeti — Partner API via Delivery Hero middleware — contact form submitted
+- Trendyol Go — `developers.tgoapps.com` — apply via `partner.trendyol.com`
+- Getir — `developers.getir.com` — requires company domain email (`info@jetadisyon.com.tr`)
+- Migros Yemek — no public portal — contact `kurumsal@migros.com.tr`
 
-Do not hardcode platform-specific logic outside its own module.
-The `OrderService` must never contain platform-specific code — it calls adapters only.
+Do not put platform-specific logic outside its own module.
+`OrderService` calls adapters only — no platform-specific code in service layer.
+
+### Getting platform access
+Getir and likely Trendyol require a company domain email.
+Register `jetadisyon.com.tr` and set up `info@jetadisyon.com.tr` via Zoho Mail (free).
+For commercial selling, register a şahıs şirketi (sole proprietorship) in Turkey.
 
 ---
 
 ## AI FEATURE
 
-**When:** Daily cron at 23:30 via NestJS `@Cron`.
-**What:** Aggregate today's order stats → send to AI provider → save Turkish narrative + raw stats → display on Analytics page.
+**Trigger:** `@Cron('30 23 * * *')` — daily at 23:30.
+**Flow:** aggregate today's SQLite orders → compute stats → send to AI provider → save Turkish narrative + raw stats to `DailySummary` → display on Analytics page with recharts chart.
 **Provider:** TBD. Implement `AIService` behind an interface. Do not couple to any specific provider.
-**Language of output:** Turkish always.
-**Do not implement the AI provider until the interface is agreed and the user has chosen a provider.**
+**Output language:** Turkish always.
+**Do not implement until interface is agreed and provider is chosen.**
+
+Provider options when decision time comes:
+- Ollama (local) — free, private, needs ~8GB RAM, first-time setup on restaurant PC
+- Claude Haiku API — ~$0.001/day, easy, good Turkish, needs internet + API key
 
 ---
 
@@ -170,13 +228,13 @@ The `OrderService` must never contain platform-specific code — it calls adapte
 - Auto-accept orders from at least one platform
 - Sound alert on new order
 - Thermal printer ticket on new order
-- Live order feed (dashboard)
+- Live order feed dashboard
 - Order history with basic filters
 - Settings: credentials, working hours, printer
 - Daily AI summary
 - License check on startup
 
-**Out (do not implement, do not scaffold):**
+**Out — do not implement, do not scaffold:**
 - Multi-branch support
 - Menu/catalog management
 - Mobile or web interface
@@ -184,29 +242,67 @@ The `OrderService` must never contain platform-specific code — it calls adapte
 - Promotions or discounts
 - Delivery tracking
 - Accounting integrations
+- Separate `packages/ui` package
 
 ---
 
 ## CODING RULES
 
-- TypeScript strict. No `any`. No type assertions without a comment explaining why.
+- TypeScript strict. No `any`. No type assertions without inline comment explaining why.
 - Every async operation in try/catch. Never swallow errors silently.
 - Log every order event and every platform API call with platform name and order ID.
-- Use NestJS `Logger` — do not use `console.log` in backend.
-- All secrets in `.env`. Validate on startup with `@nestjs/config` + `class-validator`. Fail fast with a clear message if required vars are missing.
+- Use NestJS `Logger` — never `console.log` in backend.
+- All secrets in `.env`. Validate on startup with `@nestjs/config` + `class-validator`. Fail fast with clear message if required vars are missing.
 - All NestJS controllers return `{ data, error, timestamp }`.
 - Frontend calls backend over HTTP only — no shared in-memory state between packages.
+- shadcn components live in `packages/frontend/src/components/ui/` — standard shadcn convention.
 - Commit format: `feat:` `fix:` `chore:` `docs:` `refactor:`.
 - Do not abstract prematurely. Repeat yourself twice before extracting.
 
 ---
 
+## MCP SERVERS
+
+Configured in `.mcp.json` (project-scoped, gitignored).
+Context7 is configured globally (user-scoped) — available in all projects.
+
+| Server | Purpose |
+|---|---|
+| Context7 | Live docs for NestJS, Prisma, Electron, React, Vite, Supabase |
+| shadcn/ui | Accurate component props and registry — prevents hallucinated APIs |
+| Supabase | Query local Supabase schema during development |
+
+---
+
+## DEVELOPMENT WORKFLOW
+
+### Spec-Kit (installed)
+Use for every feature — one spec per feature, numbered sequentially.
+Workflow per feature: `/speckit.specify` → `/speckit.clarify` (if needed) → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement`
+Constitution already initialized at `.specify/memory/constitution.md`.
+
+### Feature build order
+1. pnpm monorepo scaffold
+2. Supabase local setup + license schema
+3. NestJS bootstrap + SQLite/Prisma setup
+4. License check module (startup ping + local cache)
+5. Settings screen UI (shadcn)
+6. Dashboard UI with mock data (shadcn)
+7. First platform webhook integration
+8. Auto-accept logic
+9. Sound alert
+10. Printer integration
+11. Order history page
+12. Analytics page + AI summary
+
+---
+
 ## UNRESOLVED — ASK USER BEFORE IMPLEMENTING
 
-- AI provider (Ollama local vs Claude Haiku API)
-- Thermal printer library (research options, present to user before coding)
-- Webhook relay server design (VPS provider, relay protocol details)
+- AI provider (Ollama vs Claude Haiku)
+- Thermal printer library (research options, present before coding)
+- Webhook relay server design (VPS provider, relay protocol)
 - Migros Yemek API access path
-- Domain + company email (needed before applying to Getir/Trendyol — not needed yet)
+- Domain + company email (needed before Getir/Trendyol applications)
 
 ---
