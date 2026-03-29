@@ -91,3 +91,10 @@
 ---
 
 *Keep this file short. If a rule needs a long explanation, it belongs in SPEC.md instead.*
+
+## Active Technologies
+- TypeScript 5.x — strict mode; Node.js 20 LTS + pnpm workspaces (no third-party packages installed at scaffold stage) (001-monorepo-scaffold)
+- N/A — no database schema in this feature (001-monorepo-scaffold)
+
+## Recent Changes
+- 001-monorepo-scaffold: Added TypeScript 5.x — strict mode; Node.js 20 LTS + pnpm workspaces (no third-party packages installed at scaffold stage)
