@@ -3,6 +3,3 @@ node_modules
 
 # Turbo
 .turbo
-
-# Build Outputs
-dist
