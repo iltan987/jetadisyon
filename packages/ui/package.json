@@ -26,20 +26,16 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@repo/eslint-config": "workspace:*",
     "@turbo/gen": "^2.9.3",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.26",
-    "globals": "^17.4.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.0"
+    "typescript": "^5.9.3"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
