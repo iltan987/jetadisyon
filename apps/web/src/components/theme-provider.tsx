@@ -39,6 +39,12 @@ function getSystemTheme(): ResolvedTheme {
   return "light"
 }
 
+function getNextTheme(current: Theme): ResolvedTheme {
+  if (current === "dark") return "light"
+  if (current === "light") return "dark"
+  return getSystemTheme() === "dark" ? "light" : "dark"
+}
+
 function disableTransitionsTemporarily() {
   const style = document.createElement("style")
   style.appendChild(
@@ -158,15 +164,7 @@ export function ThemeProvider({
       }
 
       setThemeState((currentTheme) => {
-        const nextTheme =
-          currentTheme === "dark"
-            ? "light"
-            : currentTheme === "light"
-              ? "dark"
-              : getSystemTheme() === "dark"
-                ? "light"
-                : "dark"
-
+        const nextTheme = getNextTheme(currentTheme)
         localStorage.setItem(storageKey, nextTheme)
         return nextTheme
       })

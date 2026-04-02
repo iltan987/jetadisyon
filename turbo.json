@@ -24,5 +24,6 @@
       "cache": false,
       "persistent": true
     }
-  }
+  },
+  "globalEnv": ["PORT"]
 }
