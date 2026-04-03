@@ -19,21 +19,21 @@
     "clean": "rm -rf dist coverage .turbo node_modules"
   },
   "dependencies": {
-    "@nestjs/common": "^11.1.17",
-    "@nestjs/core": "^11.1.17",
-    "@nestjs/platform-express": "^11.1.17",
+    "@nestjs/common": "^11.1.18",
+    "@nestjs/core": "^11.1.18",
+    "@nestjs/platform-express": "^11.1.18",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.17",
     "@nestjs/schematics": "^11.0.10",
-    "@nestjs/testing": "^11.1.17",
+    "@nestjs/testing": "^11.1.18",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "@types/supertest": "^7.2.0",
     "eslint": "^9.39.4",
     "jest": "^30.3.0",
