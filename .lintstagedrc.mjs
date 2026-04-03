@@ -3,10 +3,18 @@ export default {
     "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/web/eslint.config.mjs",
     "prettier --write",
   ],
-  "packages/ui/src/**/*.{ts,tsx}": [
-    "eslint --fix --no-warn-ignored --max-warnings=0 -c packages/ui/eslint.config.mjs",
-    "prettier --write",
-  ],
+  "packages/ui/src/**/*.{ts,tsx}": (filenames) => {
+    const shadcn = filenames.filter((f) => f.includes("/components/shadcn/"));
+    const other = filenames.filter((f) => !f.includes("/components/shadcn/"));
+    return [
+      ...(other.length
+        ? [
+            `eslint --fix --no-warn-ignored --max-warnings=0 -c packages/ui/eslint.config.mjs ${other.join(" ")}`,
+          ]
+        : []),
+      `prettier --write ${filenames.join(" ")}`,
+    ];
+  },
   "apps/admin/src/**/*.{ts,tsx}": [
     "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/admin/eslint.config.mjs",
     "prettier --write",

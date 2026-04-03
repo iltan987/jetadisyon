@@ -1,4 +1,4 @@
-import { Button } from "@repo/ui/components/shadcn/button"
+import { Button } from '@repo/ui/components/shadcn/button';
 
 export function App() {
   return (
@@ -15,5 +15,5 @@ export function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
