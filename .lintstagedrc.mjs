@@ -4,8 +4,7 @@ export default {
     "prettier --write",
   ],
   "packages/ui/src/**/*.{ts,tsx}": (filenames) => {
-    const shadcn = filenames.filter((f) => f.includes("/components/shadcn/"));
-    const other = filenames.filter((f) => !f.includes("/components/shadcn/"));
+    const other = filenames.filter((f) => !f.includes("/shadcn/"));
     return [
       ...(other.length
         ? [
