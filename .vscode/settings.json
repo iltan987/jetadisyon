@@ -1,6 +1,69 @@
 {
-  "files.associations": {
-    "*.css": "tailwindcss"
+  // ── Editor ──────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
   },
-  "rust-analyzer.linkedProjects": ["apps/desktop/src-tauri/Cargo.toml"]
+  // NOTE: Do NOT enable source.organizeImports — it conflicts
+  // with eslint-plugin-simple-import-sort which handles import ordering
+
+  // ── ESLint ──────────────────────────────────────────────
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // ── TypeScript / JavaScript ──────────────────────────────
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+
+  // ── Tailwind CSS v4 ─────────────────────────────────────
+  "files.associations": { "*.css": "tailwindcss" },
+  "tailwindCSS.classFunctions": ["cn", "cva", "clsx"],
+  "tailwindCSS.emmetCompletions": true,
+
+  // ── Rust / Tauri ────────────────────────────────────────
+  "rust-analyzer.linkedProjects": ["apps/desktop/src-tauri/Cargo.toml"],
+
+  // ── Language-specific formatters ────────────────────────
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ── File explorer exclusions ────────────────────────────
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/target": true
+  },
+
+  // ── Search exclusions ───────────────────────────────────
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/target": true,
+    "pnpm-lock.yaml": true
+  }
 }
