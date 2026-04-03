@@ -5,10 +5,9 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@repo/ui/*": ["../../packages/ui/src/*"]
+      "@/*": ["${configDir}/src/*"],
+      "@repo/ui/*": ["${configDir}/../../packages/ui/src/*"]
     }
   }
 }
