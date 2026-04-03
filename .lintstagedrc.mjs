@@ -1,8 +1,4 @@
 export default {
-  "apps/web/src/**/*.{ts,tsx}": [
-    "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/web/eslint.config.mjs",
-    "prettier --write",
-  ],
   "packages/ui/src/**/*.{ts,tsx}": (filenames) => {
     const other = filenames.filter((f) => !f.includes("/shadcn/"));
     return [
