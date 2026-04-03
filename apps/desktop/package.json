@@ -1,0 +1,37 @@
+{
+  "name": "desktop",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "check-types": "tsc --noEmit",
+    "preview": "vite preview",
+    "clean": "rm -rf dist .turbo node_modules src-tauri/target src-tauri/gen",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "eslint": "^9.39.4",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

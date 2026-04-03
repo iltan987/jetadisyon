@@ -18,6 +18,10 @@ export default {
     "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/admin/eslint.config.mjs",
     "prettier --write",
   ],
+  "apps/desktop/src/**/*.{ts,tsx}": [
+    "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/desktop/eslint.config.mjs",
+    "prettier --write",
+  ],
   "apps/api/{src,test}/**/*.ts": [
     "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/api/eslint.config.mjs",
     "prettier --write",

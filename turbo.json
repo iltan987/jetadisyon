@@ -25,5 +25,5 @@
       "persistent": true
     }
   },
-  "globalEnv": ["PORT"]
+  "globalEnv": ["PORT", "TAURI_DEV_HOST"]
 }
