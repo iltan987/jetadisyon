@@ -22,6 +22,7 @@ export default {
     "eslint --fix --no-warn-ignored --max-warnings=0 -c apps/api/eslint.config.mjs",
     "prettier --write",
   ],
+  "{apps,packages}/*/*.{ts,mjs,js}": ["prettier --write"],
   "*.{js,mjs,cjs}": ["prettier --write"],
   "*.{json,md,css,html,yaml,yml}": ["prettier --write"],
 };

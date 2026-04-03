@@ -1,8 +1,8 @@
-import eslintConfigPrettier from "eslint-config-prettier/flat"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import eslintConfigPrettier from "eslint-config-prettier/flat";
+import globals from "globals";
+import tseslint from "typescript-eslint";
 
-import baseConfig from "./base.js"
+import baseConfig from "./base.js";
 
 export default [
   ...baseConfig,
@@ -21,10 +21,9 @@ export default [
   },
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/no-unsafe-argument": "warn",
     },
   },
   eslintConfigPrettier,
-]
+];

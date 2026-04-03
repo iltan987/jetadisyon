@@ -1,6 +1,5 @@
 import js from "@eslint/js";
 import checkFile from "eslint-plugin-check-file";
-import onlyWarn from "eslint-plugin-only-warn";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import sonarjs from "eslint-plugin-sonarjs";
 import turboPlugin from "eslint-plugin-turbo";
@@ -14,7 +13,6 @@ export default [
   {
     plugins: {
       turbo: turboPlugin,
-      "only-warn": onlyWarn,
       "unused-imports": unusedImports,
       "simple-import-sort": simpleImportSort,
       "check-file": checkFile,
@@ -71,10 +69,9 @@ export default [
         { ignoreMiddleExtensions: true },
       ],
 
-      // SonarJS — disable noisy rules
-      "sonarjs/cognitive-complexity": "off",
-      "sonarjs/no-duplicate-string": "off",
-      "sonarjs/sonar-no-fallthrough": "off",
+      // SonarJS — tuned rules
+      "sonarjs/cognitive-complexity": ["warn", 25],
+      "sonarjs/no-duplicate-string": ["warn", { threshold: 5 }],
     },
   },
 ];
