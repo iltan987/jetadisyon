@@ -3,3 +3,6 @@ node_modules
 
 # Turbo
 .turbo
+
+# Local workspace files (personal docs, scripts, notes)
+.local/
