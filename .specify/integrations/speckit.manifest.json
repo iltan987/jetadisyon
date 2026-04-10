@@ -1,12 +1,12 @@
 {
   "integration": "speckit",
-  "version": "0.5.0",
-  "installed_at": "2026-04-04T18:44:27.108792+00:00",
+  "version": "0.6.0",
+  "installed_at": "2026-04-10T19:01:29.668465+00:00",
   "files": {
-    ".specify/scripts/bash/common.sh": "237a34d1ba8d3cbf19613f1cfc05cf592401db42db5e4a05a0f2d98a30f8bf89",
+    ".specify/scripts/bash/common.sh": "c88faa71e559bb16f575a78ec61dffbb8d34b3bb598b7ad77a9b2ab1842499f4",
     ".specify/scripts/bash/setup-plan.sh": "bcaa0ccbf45b7d9ea9bff04006500d7eb28a2bdf82bcc819986b21e5294bf76c",
-    ".specify/scripts/bash/create-new-feature.sh": "7347a89d1b1a9b410e935a88b5c539431905125b57261e14d7abce09c03f60e9",
-    ".specify/scripts/bash/update-agent-context.sh": "f59d5e0538a00417d2532158415b87ac95efc6f7ef700333d45e7b85da0cc07b",
+    ".specify/scripts/bash/create-new-feature.sh": "3439519f72ce6f88fcd4dcd27346de0c9ffe211c927b1319db42850282f02456",
+    ".specify/scripts/bash/update-agent-context.sh": "71c8f359a1cf5b89ed7e1b6d929b85384e8b00ce30a040606cb447218083da66",
     ".specify/scripts/bash/check-prerequisites.sh": "aff361639c504b95a2901493f5022788adc01a6792fd37f132de8f57782e4b80",
     ".specify/templates/checklist-template.md": "312eee8291dfa984b21f95ddd0ca778e7a1f0b3a64bfc470d79762a3e3f5d7b8",
     ".specify/templates/agent-file-template.md": "55ed438c2e861444ef22f45fe5238f3ebf0dc1cb6e53067d7232fbbf4ce82892",
