@@ -1,2 +1,2 @@
-export type { ApiResponse } from './api-response.js';
-export { ResponseCode } from './response-codes.js';
+export type { ApiResponse } from "./api-response";
+export { ResponseCode } from "./response-codes";

@@ -1,4 +1,4 @@
-import type { ResponseCode } from './response-codes.js';
+import type { ResponseCode } from "./response-codes";
 
 export interface ApiResponse<T = undefined> {
   code: ResponseCode;
