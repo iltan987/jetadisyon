@@ -332,6 +332,9 @@ importers:
 
   packages/i18n:
     dependencies:
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../types
       i18next:
         specifier: ^26.0.4
         version: 26.0.4(typescript@5.9.3)

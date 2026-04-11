@@ -7,8 +7,14 @@ import { initI18n } from '@repo/i18n';
 import { ThemeProvider } from '@repo/ui/components/theme-provider';
 
 import { App } from './app.tsx';
+import enLocale from './locales/en.ts';
+import trLocale from './locales/tr.ts';
 
-initI18n().then(() => {
+initI18n({
+  lng: 'tr',
+  fallbackLng: 'en',
+  resources: { tr: trLocale, en: enLocale },
+}).then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <ThemeProvider>

@@ -12,6 +12,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@repo/types": "workspace:*",
     "i18next": "^26.0.4",
     "react-i18next": "^17.0.2"
   },

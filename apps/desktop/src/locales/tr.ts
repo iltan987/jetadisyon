@@ -1,0 +1,28 @@
+import type { LocaleResources } from '@repo/i18n';
+
+const tr: LocaleResources = {
+  api: {
+    SUCCESS: 'İşlem başarılı',
+    CREATED: 'Kayıt oluşturuldu',
+    VALIDATION_ERROR: 'Doğrulama hatası',
+    NOT_FOUND: 'Kayıt bulunamadı',
+    UNAUTHORIZED: 'Kimlik doğrulaması gerekiyor',
+    FORBIDDEN: 'Bu işlem için yetkiniz yok',
+    CONFLICT: 'Kayıt çakışması',
+    INTERNAL_ERROR: 'Sunucu hatası',
+    FEATURE_NOT_IMPLEMENTED: 'Bu özellik henüz kullanılamıyor',
+  },
+  common: {
+    save: 'Kaydet',
+    cancel: 'İptal',
+    confirm: 'Onayla',
+    error: 'Hata',
+    loading: 'Yükleniyor',
+  },
+  error: {
+    required_field: 'Bu alan zorunludur',
+    invalid_format: 'Geçersiz format',
+  },
+};
+
+export default tr;

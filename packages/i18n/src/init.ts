@@ -1,18 +1,25 @@
 import i18next from 'i18next';
 
-import trLocale from './locales/tr.json';
+import type { LocaleResources } from './types.js';
 
-export function initI18n(): Promise<typeof i18next.t> {
+interface I18nInitOptions {
+  lng: string;
+  fallbackLng?: string;
+  resources: Record<string, LocaleResources>;
+}
+
+export function initI18n(options: I18nInitOptions): Promise<typeof i18next.t> {
   return i18next.init({
-    lng: 'tr',
-    fallbackLng: 'tr',
+    lng: options.lng,
+    fallbackLng: options.fallbackLng ?? 'en',
     interpolation: {
       escapeValue: false,
     },
-    resources: {
-      tr: {
-        translation: trLocale,
-      },
-    },
+    resources: Object.fromEntries(
+      Object.entries(options.resources).map(([lang, translation]) => [
+        lang,
+        { translation },
+      ]),
+    ),
   });
 }
