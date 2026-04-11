@@ -1,0 +1,20 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "exports": {
+    "./src/index.ts": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^9.39.4",
+    "typescript": "^5.9.3"
+  }
+}

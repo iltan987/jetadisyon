@@ -1,0 +1,23 @@
+{
+  "name": "@repo/vite-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "exports": {
+    "./vitest.shared.ts": "./vitest.shared.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@vitejs/plugin-react": "^5.2.0",
+    "eslint": "^9.39.4",
+    "jsdom": "^29.0.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
+  }
+}

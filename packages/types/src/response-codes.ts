@@ -1,0 +1,13 @@
+export const ResponseCode = {
+  SUCCESS: 'SUCCESS',
+  CREATED: 'CREATED',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  CONFLICT: 'CONFLICT',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  FEATURE_NOT_IMPLEMENTED: 'FEATURE_NOT_IMPLEMENTED',
+} as const;
+
+export type ResponseCode = (typeof ResponseCode)[keyof typeof ResponseCode];
