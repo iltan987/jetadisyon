@@ -8,7 +8,10 @@
     "lint": "turbo run lint",
     "format": "turbo run format",
     "check-types": "turbo run check-types",
-    "clean": "turbo run clean && rm -rf .turbo node_modules",
+    "clean": "turbo run clean && rm -rf .turbo",
+    "test": "turbo run test",
+    "dev:infra": "docker compose up -d",
+    "dev:infra:stop": "docker compose down",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -23,14 +26,16 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/node": "^25.5.0",
+      "@types/node": "^25.6.0",
       "typescript": "^5.9.3",
       "eslint": "^9.39.4"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",
+      "@prisma/engines",
       "esbuild",
       "msw",
+      "prisma",
       "unrs-resolver"
     ]
   }

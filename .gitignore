@@ -6,3 +6,6 @@ node_modules
 
 # Local workspace files (personal docs, scripts, notes)
 .local/
+
+# App environment secrets (keep .env.example committed)
+apps/**/.env
