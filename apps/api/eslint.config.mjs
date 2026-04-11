@@ -1,7 +1,12 @@
-import { globalIgnores } from "eslint/config"
-import nestConfig from "@repo/eslint-config/nest"
+import { globalIgnores } from 'eslint/config';
+import nestConfig from '@repo/eslint-config/nest';
 
 export default [
-  globalIgnores(["dist/", "eslint.config.mjs", "prettier.config.mjs"]),
+  globalIgnores([
+    'dist/',
+    'generated/',
+    'eslint.config.mjs',
+    'prettier.config.mjs',
+  ]),
   ...nestConfig,
-]
+];

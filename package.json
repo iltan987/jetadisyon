@@ -33,6 +33,7 @@
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@prisma/engines",
+      "@scarf/scarf",
       "esbuild",
       "msw",
       "prisma",
