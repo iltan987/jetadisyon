@@ -8,7 +8,10 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "exports": {
-    "./vitest.shared": "./vitest.shared.mjs"
+    "./vitest.shared": {
+      "types": "./vitest.shared.d.ts",
+      "default": "./vitest.shared.mjs"
+    }
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
