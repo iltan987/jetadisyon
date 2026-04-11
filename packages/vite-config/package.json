@@ -9,7 +9,7 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "exports": {
-    "./vitest.shared.ts": "./vitest.shared.ts"
+    "./vitest.shared": "./vitest.shared.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

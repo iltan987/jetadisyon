@@ -1,6 +1,6 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 
-import sharedConfig from '@repo/vite-config/vitest.shared.ts';
+import sharedConfig from '@repo/vite-config/vitest.shared';
 
 export default mergeConfig(
   sharedConfig,

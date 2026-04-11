@@ -9,7 +9,7 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "exports": {
-    "./src/index.ts": "./src/index.ts"
+    ".": "./src/index.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

@@ -9,7 +9,7 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "exports": {
-    "./src/index.ts": "./src/index.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "i18next": "^26.0.4",
