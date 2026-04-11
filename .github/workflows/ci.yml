@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set up environment files
+        run: |
+          cp apps/api/.env.example apps/api/.env
+          cp apps/admin/.env.example apps/admin/.env
+          cp apps/desktop/.env.example apps/desktop/.env
+
       - name: Generate Prisma client
         run: pnpm --filter api db:generate
 
