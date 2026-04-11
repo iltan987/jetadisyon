@@ -148,13 +148,15 @@ A developer opening a pull request wants automatic validation that their changes
 - **FR-013**: The API MUST have a database connection module with ORM support registered in the root application module, following the ORM's official NestJS integration recipe as the starting point
 - **FR-014**: The API MUST support schema-based database migrations with version tracking; all schema and migration operations MUST be performed via the ORM CLI — no manual edits to generated files or migration history
 - **FR-015**: The project MUST include a local infrastructure definition that starts all required services with a single command
-- **FR-016**: All Turbo pipeline task dependencies MUST be updated to include the new shared packages so build ordering is correct
+- **FR-016**: All consumer packages MUST declare `workspace:*` dependencies on the new shared packages so Turbo v2 can infer the correct build graph order — Turbo v2 derives build ordering automatically from the pnpm package graph; no manual changes to the `turbo.json` pipeline section are required for build ordering
 - **FR-017**: A CI/CD pipeline MUST automatically run build, lint, check-types, and test on every pull request and push to the main branch
 - **FR-018**: The CI/CD pipeline MUST block merges when any quality check fails
 - **FR-019**: The CI/CD pipeline MUST use monorepo-aware caching so that unchanged packages are not rebuilt between runs
+- **FR-020**: A shared `packages/vite-config` workspace package MUST provide the base Vitest configuration (test environment, coverage provider) consumed by all frontend packages; Vitest configuration MUST NOT be duplicated across `apps/admin`, `apps/desktop`, and `packages/ui`
 
 ### Key Entities
 
+- **Shared Vite/Vitest Config Package** (`packages/vite-config`): A workspace package exporting the shared Vitest base configuration (`defineConfig` with jsdom environment and v8 coverage provider) consumed by all frontend packages — follows the `packages/typescript-config` / `packages/eslint-config` pattern; each frontend package's `vitest.config.ts` is a minimal file that imports from here and applies package-specific overrides via `mergeConfig` + `defineProject`
 - **Shared Types Package** (`packages/types`): A workspace package exporting TypeScript type definitions, interfaces, and enums shared across apps; has no runtime dependencies and no business logic. The `ResponseCode` enum contains domain-level semantic codes (not HTTP status codes) — HTTP status mapping is a separate concern handled in the API layer via the framework's built-in HTTP status constants or the `http-status-codes` library
 - **Shared i18n Package** (`packages/i18n`): A workspace package providing translation functions and a type-safe translation key catalog; owns the canonical Turkish translation strings
 - **Environment Configuration Schema**: Per-app declaration of all required and optional configuration variables, their expected types, and validation rules
@@ -169,10 +171,10 @@ A developer opening a pull request wants automatic validation that their changes
 - **SC-001**: Running the monorepo-wide test command executes tests in all packages (api, admin, desktop, ui, and any new packages that have tests) with zero failures on a clean install
 - **SC-002**: A TypeScript type error introduced in the shared types package is surfaced at compile time in all consuming packages without any manual intervention
 - **SC-003**: A developer with a clean repository clone can start all local infrastructure services within 60 seconds using a single command
-- **SC-004**: Any app started with a missing required environment variable prints a descriptive error naming the missing variable and exits within 3 seconds
+- **SC-004**: Any app started with a missing required environment variable surfaces a descriptive error naming the missing variable without accepting traffic or rendering UI — the API (Node.js process) exits within 3 seconds; Vite frontend apps throw at module initialization, preventing the app from mounting
 - **SC-005**: A pull request containing a failing test, type error, or lint violation is automatically blocked from merging, with the failure visible within 5 minutes of the PR being opened
 - **SC-006**: A CI run on a second commit that touches only one package shows cache hits for all unchanged packages (verified by CI log output)
-- **SC-007**: All workspace packages (existing 6 plus new packages added by this feature) are recognized by Turbo and participate in the correct build graph order
+- **SC-007**: All workspace packages (existing 6 plus 3 new packages added by this feature: `packages/types`, `packages/i18n`, `packages/vite-config`) are recognized by Turbo and participate in the correct build graph order
 
 ## Clarifications
 
@@ -181,6 +183,7 @@ A developer opening a pull request wants automatic validation that their changes
 - Q: Does `response-codes.ts` contain HTTP status codes or application-domain codes? → A: Domain-level semantic codes only (e.g., `ORDER_ACCEPTED`, `PRINTER_OFFLINE`). HTTP status mapping is a separate API-layer concern; the `http-status-codes` library or NestJS's built-in HTTP status constants handle that layer.
 - Q: Are barrel exports (`index.ts`) an appropriate pattern for library packages? → A: Yes — barrel exports are standard and appropriate for library packages, providing a stable public API surface. The TypeScript performance drawbacks of barrel exports only apply at application code scale, not to small, purpose-built packages.
 - Q: What ORM integration pattern and tooling approach to use? → A: Follow the official NestJS ORM integration recipe as the starting point with no unnecessary changes; all schema and migration operations performed via CLI only; version pinned to latest stable at time of implementation.
+- Q: How should shared Vitest configuration be centralized to avoid duplicating `vitest.config.ts` across the three frontend packages? → A: New `packages/vite-config` workspace package following the existing `packages/typescript-config` / `packages/eslint-config` pattern; it exports the shared Vitest base config (jsdom environment, v8 coverage); each frontend package's `vitest.config.ts` imports from `@repo/vite-config` and applies package-specific overrides via `mergeConfig` + `defineProject`.
 
 ## Assumptions
 
@@ -191,7 +194,7 @@ A developer opening a pull request wants automatic validation that their changes
 - The CI pipeline does not build or test the Tauri desktop binary at this stage (native binary builds are out of scope for this feature)
 - Integration with external services (payment gateways, delivery platforms) is out of scope for this feature
 - The existing packages (`packages/ui`, `packages/eslint-config`, `packages/typescript-config`) remain unchanged in structure; this feature only adds new packages
-- Test infrastructure for frontend packages uses the same test runner pattern to maintain consistency across the monorepo
+- Test infrastructure for frontend packages uses the same test runner pattern to maintain consistency across the monorepo; shared Vitest base configuration lives in `packages/vite-config` and is imported by all frontend packages — Vitest configuration is not duplicated
 - Library packages (`packages/types`, `packages/i18n`) expose their public API via a single barrel export (`index.ts`); this is standard for package code and does not carry the TypeScript performance drawbacks seen in large application codebases
 - All ORM schema and migration operations are performed via the ORM CLI — no direct editing of generated client code, schema drift files, or migration history
 - HTTP status code constants (200, 404, etc.) are a separate concern from the domain `ResponseCode` enum; the API layer maps between the two using the `http-status-codes` library or framework utilities
