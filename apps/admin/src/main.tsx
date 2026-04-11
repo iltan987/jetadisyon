@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initI18n } from '@repo/i18n';
+import { ErrorBoundary } from '@repo/ui/components/error-boundary';
 import { ThemeProvider } from '@repo/ui/components/theme-provider';
 
 import { App } from './app.tsx';
@@ -17,9 +18,11 @@ initI18n({
 }).then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </ErrorBoundary>
     </StrictMode>,
   );
 });

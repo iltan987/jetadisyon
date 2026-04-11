@@ -2,18 +2,25 @@
   "name": "@repo/types",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist",
     "lint": "eslint",
     "check-types": "tsc --noEmit",
-    "clean": "rm -rf .turbo node_modules"
+    "clean": "rm -rf .turbo node_modules dist"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "eslint": "^9.39.4",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }
 }
