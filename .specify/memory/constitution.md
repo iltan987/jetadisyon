@@ -1,25 +1,26 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.0.0 → 1.1.0 (MINOR — new principle added,
-  existing principle materially expanded)
-  
-  Modified principles:
-    - III. User Experience Consistency — added i18n rules
-      (all strings via centralized locale layer, no hardcoded
-      text in components/services)
-  
-  Added principles:
-    - VI. API Response Contract
-  
+  Version change: 1.1.0 → 1.2.0 (MINOR — material additions to
+  Development Workflow: phase-gate approval rule and library
+  research mandate)
+
+  Modified principles: (none renamed)
+
+  Added rules (Development Workflow):
+    - Phase-gate rule: agent MUST stop after each implementation
+      phase, run checks, and await user approval before proceeding
+    - Library research rule: agent MUST research any library via
+      available tools before use; never assume knowledge is current
+
   Removed sections: (none)
-  
+
   Templates requiring updates:
     - .specify/templates/plan-template.md ✅ no changes needed
     - .specify/templates/spec-template.md ✅ no changes needed
     - .specify/templates/tasks-template.md ✅ no changes needed
     - .specify/templates/commands/*.md ✅ no command files exist
-  
+
   Follow-up TODOs: none
 -->
 
@@ -165,6 +166,25 @@
 - Dependency updates MUST be reviewed for breaking changes.
   Automated dependency bumps MUST NOT be merged without CI
   passing.
+- **Phase-gate rule**: After each implementation phase
+  completes, the agent MUST stop, run all applicable checks
+  (build, lint, type-check, tests), and wait for every check to
+  pass before continuing. The agent MUST then present the phase
+  summary to the user and ask for explicit approval before
+  proceeding to the next phase. By default, the agent MUST
+  commit the completed phase before moving on unless the user
+  explicitly instructs otherwise. Rushing through multiple
+  phases without user checkpoints is prohibited.
+- **Library research mandate**: Before using any library,
+  framework, SDK, or external dependency, the agent MUST
+  research its current API and behavior via available tools
+  (e.g., context7 MCP, web search, reading installed
+  `node_modules` source). The agent MUST NOT rely solely on
+  training-time knowledge, which may be outdated or incorrect
+  for the installed version. If, after research, behavior
+  remains unclear, the agent MUST ask the user for
+  clarification rather than guessing. Assuming familiarity
+  with a library without verification is prohibited.
 
 ## Governance
 
@@ -183,4 +203,4 @@
   principles. Reviewers MUST flag violations rather than
   silently approving.
 
-**Version**: 1.1.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-04
+**Version**: 1.2.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-11
