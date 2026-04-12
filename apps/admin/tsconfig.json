@@ -6,8 +6,9 @@
   ],
   "compilerOptions": {
     "paths": {
-      "@/*": ["${configDir}/src/*"],
-      "@repo/ui/*": ["${configDir}/../../packages/ui/src/*"]
+      "@/*": ["./src/*"],
+      "@repo/ui/components/shadcn": ["../../packages/ui/src/components/shadcn"],
+      "@repo/ui/lib/shadcn/utils": ["../../packages/ui/src/lib/shadcn/utils"]
     }
   }
 }

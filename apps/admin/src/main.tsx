@@ -6,9 +6,9 @@ import { createRoot } from 'react-dom/client';
 import { initI18n } from '@repo/i18n';
 import { ErrorBoundary, ThemeProvider } from '@repo/ui/components';
 
-import { App } from './app.tsx';
-import enLocale from './locales/en.ts';
-import trLocale from './locales/tr.ts';
+import { App } from './app';
+import enLocale from './locales/en';
+import trLocale from './locales/tr';
 
 initI18n({
   lng: 'tr',

@@ -17,9 +17,9 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@vitejs/plugin-react": "^5.2.0",
-    "eslint": "^9.39.4",
+    "eslint": "catalog:",
     "jsdom": "^29.0.2",
-    "typescript": "^5.9.3",
+    "typescript": "catalog:",
     "vitest": "^4.1.4"
   }
 }

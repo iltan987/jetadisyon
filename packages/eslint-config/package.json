@@ -14,7 +14,7 @@
     "./prettier-tailwind": "./prettier-tailwind.mjs"
   },
   "peerDependencies": {
-    "eslint": "^9.39.4"
+    "eslint": "catalog:"
   },
   "dependencies": {
     "@eslint/js": "^9.39.4",
@@ -33,7 +33,7 @@
     "typescript-eslint": "^8.58.1"
   },
   "devDependencies": {
-    "eslint": "^9.39.4",
-    "typescript": "^5.9.3"
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   }
 }

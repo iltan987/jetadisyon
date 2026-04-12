@@ -6,7 +6,6 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "preserve",
     "jsx": "react-jsx",
-    "noEmit": true,
-    "allowImportingTsExtensions": true
+    "noEmit": true
   }
 }
