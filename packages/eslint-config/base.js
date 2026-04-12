@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import checkFile from "eslint-plugin-check-file";
+import importPlugin from "eslint-plugin-import";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import sonarjs from "eslint-plugin-sonarjs";
 import turboPlugin from "eslint-plugin-turbo";
@@ -15,6 +16,7 @@ export default [
       turbo: turboPlugin,
       "unused-imports": unusedImports,
       "simple-import-sort": simpleImportSort,
+      import: importPlugin,
       "check-file": checkFile,
     },
     rules: {
@@ -32,6 +34,7 @@ export default [
       ],
 
       // Import sorting
+      "import/no-duplicates": "warn",
       "simple-import-sort/imports": [
         "warn",
         {

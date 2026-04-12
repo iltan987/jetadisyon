@@ -50,14 +50,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
-  // ── File explorer exclusions ────────────────────────────
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/.turbo": true,
-    "**/dist": true,
-    "**/target": true
-  },
-
   // ── Search exclusions ───────────────────────────────────
   "search.exclude": {
     "**/node_modules": true,
