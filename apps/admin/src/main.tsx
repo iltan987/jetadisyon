@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initI18n } from '@repo/i18n';
-import { ThemeProvider } from '@repo/ui/components/theme-provider';
+import { ErrorBoundary, ThemeProvider } from '@repo/ui/components';
 
 import { App } from './app.tsx';
 import enLocale from './locales/en.ts';
@@ -17,9 +17,11 @@ initI18n({
 }).then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </ErrorBoundary>
     </StrictMode>,
   );
 });

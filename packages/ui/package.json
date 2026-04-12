@@ -45,7 +45,7 @@
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./lib/*": "./src/lib/*.ts",
-    "./components/*": "./src/components/*.tsx",
+    "./components": "./src/components/index.ts",
     "./components/shadcn/*": "./src/components/shadcn/*.tsx",
     "./hooks/*": "./src/hooks/*.ts"
   }
