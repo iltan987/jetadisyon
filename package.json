@@ -34,6 +34,7 @@
       "@nestjs/core",
       "@prisma/engines",
       "@scarf/scarf",
+      "@swc/core",
       "esbuild",
       "msw",
       "prisma",

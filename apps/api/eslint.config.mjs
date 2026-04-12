@@ -7,6 +7,7 @@ export default [
     'generated/',
     'eslint.config.mjs',
     'prettier.config.mjs',
+    'webpack.config.js',
   ]),
   ...nestConfig,
 ];
