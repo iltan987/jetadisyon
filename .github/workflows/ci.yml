@@ -28,11 +28,12 @@ jobs:
       - name: Set up environment files
         run: |
           cp apps/api/.env.example apps/api/.env
+          cp packages/db/.env.example packages/db/.env
           cp apps/admin/.env.example apps/admin/.env
           cp apps/desktop/.env.example apps/desktop/.env
 
       - name: Generate Prisma client
-        run: pnpm --filter api db:generate
+        run: pnpm --filter @repo/db db:generate
 
       - name: Build, lint, type-check, and test
         run: pnpm turbo build lint check-types test
