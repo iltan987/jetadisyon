@@ -47,10 +47,10 @@
 
 **Independent Test**: Run `pnpm --filter api check-types` after completing this phase — it must resolve `PrismaClient` and the `Prisma` namespace from `@repo/db` with no errors.
 
-- [ ] T011 [US1] Create `packages/db/src/index.ts` — re-export from generated: `export * from '../generated/prisma/client.js'` (exports `PrismaClient`, all model types, input types, enums, `Prisma` namespace)
-- [ ] T012 [US1] Update `apps/api/package.json`: add `"@repo/db": "workspace:*"` to `dependencies`; remove `@prisma/client` from `dependencies` and `prisma` from `devDependencies`
-- [ ] T013 [US1] Run `pnpm install` from repo root to apply dependency changes
-- [ ] T014 [US1] Run `pnpm --filter api check-types` and confirm `PrismaClient` resolves from `@repo/db` with no type errors
+- [x] T011 [US1] Create `packages/db/src/index.ts` — re-export from generated: `export * from '../generated/prisma/client.js'` (exports `PrismaClient`, all model types, input types, enums, `Prisma` namespace)
+- [x] T012 [US1] Update `apps/api/package.json`: add `"@repo/db": "workspace:*"` to `dependencies`; remove `@prisma/client` from `dependencies` and `prisma` from `devDependencies`
+- [x] T013 [US1] Run `pnpm install` from repo root to apply dependency changes
+- [x] T014 [US1] Run `pnpm --filter api check-types` and confirm `PrismaClient` resolves from `@repo/db` with no type errors
 
 **Checkpoint**: `apps/api` compiles with Prisma types sourced entirely from `@repo/db`. Existing `PrismaService` still builds (import path update comes in US2).
 
