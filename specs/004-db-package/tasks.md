@@ -80,8 +80,8 @@
 
 **Independent Test**: Install `@repo/db` in one other workspace package, import a type, and confirm TypeScript resolves it without `apps/api` in the dep graph.
 
-- [ ] T022 [US3] Verify `packages/db/package.json` `exports` field is `{ ".": "./src/index.ts" }` and no `apps/api` path appears in `packages/db`'s dependency tree (`pnpm why @repo/db --filter @repo/db`)
-- [ ] T023 [US3] Add `"@repo/db": "workspace:*"` to `packages/types/package.json` as a smoke-test devDependency; add a type-only import in `packages/types/src/index.ts` (e.g., `import type { PrismaClient } from '@repo/db'`); run `pnpm --filter @repo/types check-types` and confirm it passes; revert the temporary import and dependency after verification
+- [x] T022 [US3] Verify `packages/db/package.json` `exports` field is `{ ".": "./src/index.ts" }` and no `apps/api` path appears in `packages/db`'s dependency tree (`pnpm why @repo/db --filter @repo/db`)
+- [x] T023 [US3] Add `"@repo/db": "workspace:*"` to `packages/types/package.json` as a smoke-test devDependency; add a type-only import in `packages/types/src/index.ts` (e.g., `import type { PrismaClient } from '@repo/db'`); run `pnpm --filter @repo/types check-types` and confirm it passes; revert the temporary import and dependency after verification
 
 **Checkpoint**: `@repo/db` is a self-contained, re-usable package with no app-layer coupling.
 
