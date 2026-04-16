@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "module": "preserve",
+    "target": "ES2022",
+    "lib": ["ES2022"]
+  },
+  "include": ["src", "prisma.config.ts"],
+  "exclude": ["generated"]
+}

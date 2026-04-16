@@ -1,8 +1,11 @@
 # jetadisyon Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-11
+Auto-generated from all feature plans. Last updated: 2026-04-16
 
 ## Active Technologies
+
+- TypeScript 5.x (strict), Node.js ≥20 + Prisma 7.7.0, `@prisma/client ^7.7.0`, `@prisma/adapter-pg ^7.7.0`, pnpm workspaces, Turbo v2 (004-db-package)
+- PostgreSQL via `@prisma/adapter-pg` (`PrismaPg` driver) (004-db-package)
 
 - TypeScript 5.x (strict, no any), Node.js ≥20, Rust 2021 (Tauri — unchanged) + pnpm v10 workspaces, Turbo v2, NestJS v11 (API), React 19 + Vite v7 (frontend), Vitest (new — frontend tests), `@repo/vite-config` (new — shared Vitest base config), Prisma (new — ORM), i18next + react-i18next (new — i18n), zod (existing — env validation), Docker Compose v2 (new — local infra), GitHub Actions (new — CI) (002-infra-scaffold)
 
@@ -23,6 +26,8 @@ cargo test && cargo clippy
 TypeScript 5.x (strict, no any), Node.js ≥20, Rust 2021 (Tauri — unchanged): Follow standard conventions
 
 ## Recent Changes
+
+- 004-db-package: Added TypeScript 5.x (strict), Node.js ≥20 + Prisma 7.7.0, `@prisma/client ^7.7.0`, `@prisma/adapter-pg ^7.7.0`, pnpm workspaces, Turbo v2
 
 - 002-infra-scaffold: Added TypeScript 5.x (strict, no any), Node.js ≥20, Rust 2021 (Tauri — unchanged) + pnpm v10 workspaces, Turbo v2, NestJS v11 (API), React 19 + Vite v7 (frontend), Vitest (new — frontend tests), `@repo/vite-config` (new — shared Vitest base config), Prisma (new — ORM), i18next + react-i18next (new — i18n), zod (existing — env validation), Docker Compose v2 (new — local infra), GitHub Actions (new — CI)
 
