@@ -29,13 +29,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 `git mv apps/api/prisma/schema.prisma packages/db/prisma/schema.prisma` then update `output` in generator block to `"../generated/prisma"` in `packages/db/prisma/schema.prisma`
-- [ ] T005 [P] `git mv apps/api/prisma.config.ts packages/db/prisma.config.ts` (content unchanged — paths in `defineConfig` are relative to the file and stay valid)
-- [ ] T006 [P] Move `apps/api/prisma/migrations/` to `packages/db/prisma/migrations/` (directory is empty; preserve with a `.gitkeep` if needed)
-- [ ] T007 Update `turbo.json`: add `"^db:generate"` to `build.dependsOn` and `dev.dependsOn` per plan.md §Phase 5; add `"generated/prisma/**"` to `build.outputs`; rename `db:deploy` → `db:migrate:deploy`
-- [ ] T008 Run `pnpm install` from repo root so pnpm links `@repo/db` in the workspace
-- [ ] T009 Run `pnpm --filter @repo/db db:generate` and verify `packages/db/generated/prisma/` is populated with `client.ts`, `models.ts`, `enums.ts`, `browser.ts`, `commonInputTypes.ts`
-- [ ] T010 Add `generated/prisma/` to `packages/db/.gitignore` (or confirm root `.gitignore` covers it)
+- [x] T004 `git mv apps/api/prisma/schema.prisma packages/db/prisma/schema.prisma` then update `output` in generator block to `"../generated/prisma"` in `packages/db/prisma/schema.prisma`
+- [x] T005 [P] `git mv apps/api/prisma.config.ts packages/db/prisma.config.ts` (content unchanged — paths in `defineConfig` are relative to the file and stay valid)
+- [x] T006 [P] Move `apps/api/prisma/migrations/` to `packages/db/prisma/migrations/` (directory is empty; preserve with a `.gitkeep` if needed)
+- [x] T007 Update `turbo.json`: add `"^db:generate"` to `build.dependsOn` and `dev.dependsOn` per plan.md §Phase 5; add `"generated/prisma/**"` to `build.outputs`; rename `db:deploy` → `db:migrate:deploy`
+- [x] T008 Run `pnpm install` from repo root so pnpm links `@repo/db` in the workspace
+- [x] T009 Run `pnpm --filter @repo/db db:generate` and verify `packages/db/generated/prisma/` is populated with `client.ts`, `models.ts`, `enums.ts`, `browser.ts`, `commonInputTypes.ts`
+- [x] T010 Add `generated/prisma/` to `packages/db/.gitignore` (or confirm root `.gitignore` covers it)
 
 **Checkpoint**: `packages/db/generated/prisma/client.ts` exists; `turbo.json` ensures generation precedes all builds.
 
