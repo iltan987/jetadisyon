@@ -91,11 +91,11 @@
 
 **Purpose**: Full pipeline verification and final cleanup.
 
-- [ ] T024 Run `pnpm run build` from repo root via Turbo; confirm `@repo/db#db:generate` runs before `api#build` in the task graph
-- [ ] T025 [P] Run `pnpm run check-types` from repo root; confirm zero errors across all packages
-- [ ] T026 [P] Run `pnpm run lint` from repo root; confirm zero new lint violations
-- [ ] T027 Confirm `pnpm --filter @repo/db db:migrate` can reach the database and runs migration commands (requires local Docker infra running)
-- [ ] T028 Confirm `turbo run dev` starts without requiring any manual generation step
+- [x] T024 Run `pnpm run build` from repo root via Turbo; confirm `@repo/db#db:generate` runs before `api#build` in the task graph
+- [x] T025 [P] Run `pnpm run check-types` from repo root; confirm zero errors across all packages
+- [x] T026 [P] Run `pnpm run lint` from repo root; confirm zero new lint violations
+- [x] T027 Confirm `pnpm --filter @repo/db db:migrate` can reach the database and runs migration commands (requires local Docker infra running)
+- [x] T028 Confirm `turbo run dev` starts without requiring any manual generation step
 
 ---
 

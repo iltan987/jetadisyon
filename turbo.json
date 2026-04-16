@@ -41,5 +41,5 @@
       "persistent": true
     }
   },
-  "globalEnv": ["PORT", "TAURI_DEV_HOST", "DATABASE_URL"]
+  "globalEnv": ["PORT", "TAURI_DEV_HOST", "DATABASE_URL", "NODE_ENV"]
 }
