@@ -15,9 +15,9 @@
 
 **Purpose**: Create the `packages/db` workspace package skeleton.
 
-- [ ] T001 Create directory structure: `packages/db/prisma/`, `packages/db/src/`, `packages/db/generated/`
-- [ ] T002 Create `packages/db/package.json` per plan.md §1.1 (name: `@repo/db`, exports `./src/index.ts`, deps: `@prisma/client`, `@prisma/adapter-pg`, `pg`, `dotenv`; devDeps: `prisma`, shared configs)
-- [ ] T003 Create `packages/db/tsconfig.json` per plan.md §1.2 (extends `@repo/typescript-config/base.json`, includes `src` and `prisma.config.ts`, excludes `generated`)
+- [x] T001 Create directory structure: `packages/db/prisma/`, `packages/db/src/`, `packages/db/generated/`
+- [x] T002 Create `packages/db/package.json` per plan.md §1.1 (name: `@repo/db`, exports `./src/index.ts`, deps: `@prisma/client`, `@prisma/adapter-pg`, `pg`, `dotenv`; devDeps: `prisma`, shared configs)
+- [x] T003 Create `packages/db/tsconfig.json` per plan.md §1.2 (extends `@repo/typescript-config/base.json`, includes `src` and `prisma.config.ts`, excludes `generated`)
 
 **Checkpoint**: `packages/db` is a valid workspace package; `pnpm install` from root recognises it.
 
