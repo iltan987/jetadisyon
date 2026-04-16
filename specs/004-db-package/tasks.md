@@ -62,13 +62,13 @@
 
 **Independent Test**: `apps/api` starts without error; `PrismaService` holds the singleton from `@repo/db`; `apps/api` has zero `@prisma/adapter-pg`, `pg`, or `@prisma/client` direct dependencies.
 
-- [ ] T015 [US2] Create `packages/db/src/client.ts` — singleton `PrismaClient` with `PrismaPg` adapter and `globalThis` guard per plan.md §1.3
-- [ ] T016 [US2] Update `packages/db/src/index.ts` to also export the singleton: `export { prisma } from './client.js'`
-- [ ] T017 [US2] Rewrite `apps/api/src/database/prisma.service.ts` to wrap the singleton per plan.md §4.2 (implements `OnModuleInit`/`OnModuleDestroy`; no adapter instantiation in the API)
-- [ ] T018 [US2] Update `apps/api/package.json`: remove `@prisma/adapter-pg`, `pg`, `@types/pg` from all dependency sections
-- [ ] T019 [US2] Delete `apps/api/scripts/ensure-prisma-client.mjs`; remove all `pnpm run ensure:prisma &&` prefixes from `dev`, `build`, `start`, `start:debug`, `check-types` scripts in `apps/api/package.json`
-- [ ] T020 [US2] Delete `apps/api/prisma/` directory (now empty after T004/T006) and `apps/api/generated/` directory; update `apps/api/package.json` `clean` script to remove `generated/prisma` entry
-- [ ] T021 [US2] Run `pnpm install` from root; run `pnpm --filter api build` and confirm it succeeds with generation running first via Turbo
+- [x] T015 [US2] Create `packages/db/src/client.ts` — singleton `PrismaClient` with `PrismaPg` adapter and `globalThis` guard per plan.md §1.3
+- [x] T016 [US2] Update `packages/db/src/index.ts` to also export the singleton: `export { prisma } from './client.js'`
+- [x] T017 [US2] Rewrite `apps/api/src/database/prisma.service.ts` to wrap the singleton per plan.md §4.2 (implements `OnModuleInit`/`OnModuleDestroy`; no adapter instantiation in the API)
+- [x] T018 [US2] Update `apps/api/package.json`: remove `@prisma/adapter-pg`, `pg`, `@types/pg` from all dependency sections
+- [x] T019 [US2] Delete `apps/api/scripts/ensure-prisma-client.mjs`; remove all `pnpm run ensure:prisma &&` prefixes from `dev`, `build`, `start`, `start:debug`, `check-types` scripts in `apps/api/package.json`
+- [x] T020 [US2] Delete `apps/api/prisma/` directory (now empty after T004/T006) and `apps/api/generated/` directory; update `apps/api/package.json` `clean` script to remove `generated/prisma` entry
+- [x] T021 [US2] Run `pnpm install` from root; run `pnpm --filter api build` and confirm it succeeds with generation running first via Turbo
 
 **Checkpoint**: `apps/api` has no direct Prisma dependencies; `PrismaService.db` is the `packages/db` singleton; build pipeline works end-to-end via Turbo.
 
