@@ -5,8 +5,6 @@ compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
   source: git:commands/speckit.git.commit.md
-user-invocable: true
-disable-model-invocation: true
 ---
 
 # Auto-Commit Changes
@@ -39,9 +37,9 @@ In `.specify/extensions/git/git-config.yml`:
 
 ```yaml
 auto_commit:
-  default: false          # Global toggle — set true to enable for all commands
+  default: false # Global toggle — set true to enable for all commands
   after_specify:
-    enabled: true          # Override per-command
+    enabled: true # Override per-command
     message: "[Spec Kit] Add specification"
   after_plan:
     enabled: false
