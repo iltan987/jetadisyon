@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@repo/types": "workspace:*",
-    "i18next": "^26.0.4",
-    "react-i18next": "^17.0.2"
+    "i18next": "^26.0.5",
+    "react-i18next": "^17.0.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

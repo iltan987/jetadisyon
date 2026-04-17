@@ -15,5 +15,5 @@ allowBuilds:
 catalog:
   "@types/node": ^25.6.0
   eslint: ^9.39.4
-  shadcn: ^4.2.0
+  shadcn: ^4.3.0
   typescript: ^5.9.3
