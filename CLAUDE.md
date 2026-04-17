@@ -1,8 +1,11 @@
 # jetadisyon Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-16
+Auto-generated from all feature plans. Last updated: 2026-04-17
 
 ## Active Technologies
+
+- TypeScript 5.x strict (backend, admin, shared packages); Rust 2021 (Tauri desktop backend) (005-database-design)
+- PostgreSQL (server, via `@repo/db`); SQLite (Tauri local-only layer) (005-database-design)
 
 - TypeScript 5.x (strict), Node.js ≥20 + Prisma 7.7.0, `@prisma/client ^7.7.0`, `@prisma/adapter-pg ^7.7.0`, pnpm workspaces, Turbo v2 (004-db-package)
 - PostgreSQL via `@prisma/adapter-pg` (`PrismaPg` driver) (004-db-package)
@@ -26,6 +29,8 @@ cargo test && cargo clippy
 TypeScript 5.x (strict, no any), Node.js ≥20, Rust 2021 (Tauri — unchanged): Follow standard conventions
 
 ## Recent Changes
+
+- 005-database-design: Added TypeScript 5.x strict (backend, admin, shared packages); Rust 2021 (Tauri desktop backend)
 
 - 004-db-package: Added TypeScript 5.x (strict), Node.js ≥20 + Prisma 7.7.0, `@prisma/client ^7.7.0`, `@prisma/adapter-pg ^7.7.0`, pnpm workspaces, Turbo v2
 
