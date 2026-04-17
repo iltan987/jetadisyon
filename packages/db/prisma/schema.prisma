@@ -6,3 +6,228 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum OrderOutcome {
+  AUTO_ACCEPTED
+  MANUALLY_ACCEPTED
+  TIMED_OUT
+  CANCELLED_BY_PLATFORM
+}
+
+enum HolidayCategory {
+  FIXED_DATE
+  LUNAR
+}
+
+enum HolidayApprovalStatus {
+  AUTO_APPROVED
+  OPERATOR_OVERRIDDEN
+}
+
+enum HolidayPolicyEffect {
+  CLOSED
+  CUSTOM_HOURS
+  OPEN_NORMAL
+}
+
+enum WorkingDayEffect {
+  CLOSED
+  CUSTOM_HOURS
+  OPEN_NORMAL
+}
+
+// ─── Entities ─────────────────────────────────────────────────────────────────
+
+model Restaurant {
+  id                    String   @id @default(cuid())
+  name                  String
+  preAcceptDelayMs      Int      @default(0)
+  manualAcceptTimeoutMs Int      @default(120000)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  weeklySchedule    WeeklyScheduleDay[]
+  platforms         RestaurantPlatform[]
+  orders            Order[]
+  dailySummaries    DailySummary[]
+  holidayPolicies   RestaurantHolidayPolicy[]
+  workingDayOverrides WorkingDayOverride[]
+  installationKey   InstallationKey?
+  platformCredentials PlatformCredential[]
+}
+
+model WeeklyScheduleDay {
+  id           String  @id @default(cuid())
+  restaurantId String
+  dayOfWeek    Int
+  isOpen       Boolean @default(true)
+  startTime    String
+  endTime      String
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, dayOfWeek])
+}
+
+model DeliveryPlatform {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  restaurantPlatforms RestaurantPlatform[]
+  orders              Order[]
+  platformCredentials PlatformCredential[]
+}
+
+model RestaurantPlatform {
+  id           String  @id @default(cuid())
+  restaurantId String
+  platformId   String
+  isActive     Boolean @default(true)
+
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
+
+  @@unique([restaurantId, platformId])
+}
+
+model PlatformCredential {
+  id             String   @id @default(cuid())
+  restaurantId   String
+  platformId     String
+  ciphertextBlob Bytes
+  derivationSalt Bytes
+  algorithmId    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
+
+  @@unique([restaurantId, platformId])
+}
+
+model InstallationKey {
+  id           String   @id @default(cuid())
+  restaurantId String   @unique
+  encryptedKey Bytes
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model Order {
+  id              String       @id @default(cuid())
+  restaurantId    String
+  platformId      String
+  platformOrderId String
+  totalValue      Decimal      @db.Decimal(10, 2)
+  receivedAt      DateTime
+  outcomeStatus   OrderOutcome
+  outcomeAt       DateTime
+  operatorNotes   String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
+  items      OrderItem[]
+  auditLogs  OrderAuditLog[]
+
+  @@unique([restaurantId, platformOrderId])
+  @@index([restaurantId, receivedAt])
+  @@index([restaurantId, outcomeStatus])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  name      String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model OrderAuditLog {
+  id            String   @id @default(cuid())
+  orderId       String
+  field         String
+  originalValue String?
+  newValue      String?
+  editedAt      DateTime @default(now())
+  operatorId    String
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model HolidayType {
+  id       String          @id @default(cuid())
+  name     String          @unique
+  category HolidayCategory
+
+  calendarEntries  HolidayCalendarEntry[]
+  holidayPolicies  RestaurantHolidayPolicy[]
+}
+
+model HolidayCalendarEntry {
+  id             String                @id @default(cuid())
+  holidayTypeId  String
+  year           Int
+  startDate      DateTime              @db.Date
+  endDate        DateTime              @db.Date
+  approvalStatus HolidayApprovalStatus @default(AUTO_APPROVED)
+
+  holidayType HolidayType @relation(fields: [holidayTypeId], references: [id])
+
+  @@unique([holidayTypeId, year])
+  @@index([year])
+}
+
+model RestaurantHolidayPolicy {
+  id             String              @id @default(cuid())
+  restaurantId   String
+  holidayTypeId  String
+  effect         HolidayPolicyEffect
+  startTime      String?
+  endTime        String?
+
+  restaurant  Restaurant  @relation(fields: [restaurantId], references: [id])
+  holidayType HolidayType @relation(fields: [holidayTypeId], references: [id])
+
+  @@unique([restaurantId, holidayTypeId])
+}
+
+model WorkingDayOverride {
+  id           String           @id @default(cuid())
+  restaurantId String
+  date         DateTime         @db.Date
+  effect       WorkingDayEffect
+  startTime    String?
+  endTime      String?
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, date])
+  @@index([restaurantId, date])
+}
+
+model DailySummary {
+  id                String   @id @default(cuid())
+  restaurantId      String
+  date              DateTime @db.Date
+  acceptedCount     Int
+  failedCount       Int
+  totalRevenue      Decimal  @db.Decimal(10, 2)
+  platformBreakdown Json
+  peakHour          Int?
+  topItems          Json
+  computedAt        DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, date])
+  @@index([restaurantId, date])
+}

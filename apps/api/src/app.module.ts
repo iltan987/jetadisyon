@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { env } from './config/env';
 import { PrismaService } from './database/prisma.service';
 
@@ -19,6 +21,10 @@ import { PrismaService } from './database/prisma.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
+  ],
 })
 export class AppModule {}
