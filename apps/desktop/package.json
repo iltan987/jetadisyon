@@ -20,6 +20,7 @@
     "@t3-oss/env-core": "^0.13.11",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-opener": "^2.5.3",
+    "@tauri-apps/plugin-sql": "~2.4.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "zod": "^4.3.6"

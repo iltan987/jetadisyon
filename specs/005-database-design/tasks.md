@@ -17,10 +17,10 @@
 
 **Purpose**: New package scaffolding and plugin installation needed before any story can begin.
 
-- [ ] T001 Create `packages/utils/` package scaffold: `package.json` (name `@repo/utils`, extends `@repo/typescript-config`, dependency `@tabby_ai/hijri-converter`), `tsconfig.json`, empty `src/index.ts`, and subdirectory `src/holidays/` for holiday/schedule logic — structure allows future utilities to be added at `src/` level alongside `holidays/`
-- [ ] T002 [P] Install `@tabby_ai/hijri-converter` in the new package: run `pnpm --filter @repo/utils add @tabby_ai/hijri-converter`
-- [ ] T003 [P] Install Tauri SQL plugin: from `apps/desktop/`, run `pnpm tauri add sql` (installs Rust crate + JS package + wires Tauri 2 permissions automatically)
-- [ ] T004 [P] Add `@repo/utils` as workspace dependency to API and admin apps: `pnpm --filter @repo/api add @repo/utils@workspace:*` and `pnpm --filter @repo/admin add @repo/utils@workspace:*`
+- [x] T001 Create `packages/utils/` package scaffold: `package.json` (name `@repo/utils`, extends `@repo/typescript-config`, dependency `@tabby_ai/hijri-converter`), `tsconfig.json`, empty `src/index.ts`, and subdirectory `src/holidays/` for holiday/schedule logic — structure allows future utilities to be added at `src/` level alongside `holidays/`
+- [x] T002 [P] Install `@tabby_ai/hijri-converter` in the new package: run `pnpm --filter @repo/utils add @tabby_ai/hijri-converter`
+- [x] T003 [P] Install Tauri SQL plugin: from `apps/desktop/`, run `pnpm tauri add sql` (installs Rust crate + JS package + wires Tauri 2 permissions automatically)
+- [x] T004 [P] Add `@repo/utils` as workspace dependency to API and admin apps: `pnpm --filter @repo/api add @repo/utils@workspace:*` and `pnpm --filter @repo/admin add @repo/utils@workspace:*`
 
 **Checkpoint**: Package scaffold exists and deps installed. No compilation yet.
 
