@@ -1,9 +1,9 @@
 import js from "@eslint/js";
-import checkFile from "eslint-plugin-check-file";
 import importPlugin from "eslint-plugin-import";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import sonarjs from "eslint-plugin-sonarjs";
 import turboPlugin from "eslint-plugin-turbo";
+import unicorn from "eslint-plugin-unicorn";
 import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
@@ -17,7 +17,7 @@ export default [
       "unused-imports": unusedImports,
       "simple-import-sort": simpleImportSort,
       import: importPlugin,
-      "check-file": checkFile,
+      unicorn,
     },
     rules: {
       ...turboPlugin.configs["flat/recommended"].rules,
@@ -65,16 +65,26 @@ export default [
         },
       ],
 
-      // File naming convention
-      "check-file/filename-naming-convention": [
-        "warn",
-        { "**/*.{ts,tsx,js,jsx,mjs}": "KEBAB_CASE" },
-        { ignoreMiddleExtensions: true },
-      ],
+      // File naming: kebab-case by default
+      "unicorn/filename-case": ["warn", { case: "kebabCase" }],
 
       // SonarJS — tuned rules
       "sonarjs/cognitive-complexity": ["warn", 25],
       "sonarjs/no-duplicate-string": ["warn", { threshold: 5 }],
+    },
+  },
+  // React components (.tsx) → PascalCase
+  {
+    files: ["**/*.tsx"],
+    rules: {
+      "unicorn/filename-case": ["warn", { case: "pascalCase" }],
+    },
+  },
+  // React hooks (use*.ts) → camelCase
+  {
+    files: ["**/use*.ts"],
+    rules: {
+      "unicorn/filename-case": ["warn", { case: "camelCase" }],
     },
   },
 ];
