@@ -2,12 +2,6 @@
 CREATE TYPE "OrderOutcome" AS ENUM ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED', 'TIMED_OUT', 'CANCELLED_BY_PLATFORM');
 
 -- CreateEnum
-CREATE TYPE "HolidayCategory" AS ENUM ('FIXED_DATE', 'LUNAR');
-
--- CreateEnum
-CREATE TYPE "HolidayApprovalStatus" AS ENUM ('AUTO_APPROVED', 'OPERATOR_OVERRIDDEN');
-
--- CreateEnum
 CREATE TYPE "HolidayPolicyEffect" AS ENUM ('CLOSED', 'CUSTOM_HOURS', 'OPEN_NORMAL');
 
 -- CreateEnum
@@ -122,22 +116,12 @@ CREATE TABLE "OrderAuditLog" (
 );
 
 -- CreateTable
-CREATE TABLE "HolidayType" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "category" "HolidayCategory" NOT NULL,
-
-    CONSTRAINT "HolidayType_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "HolidayCalendarEntry" (
     "id" TEXT NOT NULL,
-    "holidayTypeId" TEXT NOT NULL,
+    "holidayTypeName" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "startDate" DATE NOT NULL,
     "endDate" DATE NOT NULL,
-    "approvalStatus" "HolidayApprovalStatus" NOT NULL DEFAULT 'AUTO_APPROVED',
 
     CONSTRAINT "HolidayCalendarEntry_pkey" PRIMARY KEY ("id")
 );
@@ -146,7 +130,7 @@ CREATE TABLE "HolidayCalendarEntry" (
 CREATE TABLE "RestaurantHolidayPolicy" (
     "id" TEXT NOT NULL,
     "restaurantId" TEXT NOT NULL,
-    "holidayTypeId" TEXT NOT NULL,
+    "holidayTypeName" TEXT NOT NULL,
     "effect" "HolidayPolicyEffect" NOT NULL,
     "startTime" TEXT,
     "endTime" TEXT,
@@ -210,16 +194,13 @@ CREATE INDEX "Order_restaurantId_outcomeStatus_idx" ON "Order"("restaurantId", "
 CREATE UNIQUE INDEX "Order_restaurantId_platformOrderId_key" ON "Order"("restaurantId", "platformOrderId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "HolidayType_name_key" ON "HolidayType"("name");
-
--- CreateIndex
 CREATE INDEX "HolidayCalendarEntry_year_idx" ON "HolidayCalendarEntry"("year");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "HolidayCalendarEntry_holidayTypeId_year_key" ON "HolidayCalendarEntry"("holidayTypeId", "year");
+CREATE UNIQUE INDEX "HolidayCalendarEntry_holidayTypeName_year_key" ON "HolidayCalendarEntry"("holidayTypeName", "year");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RestaurantHolidayPolicy_restaurantId_holidayTypeId_key" ON "RestaurantHolidayPolicy"("restaurantId", "holidayTypeId");
+CREATE UNIQUE INDEX "RestaurantHolidayPolicy_restaurantId_holidayTypeName_key" ON "RestaurantHolidayPolicy"("restaurantId", "holidayTypeName");
 
 -- CreateIndex
 CREATE INDEX "WorkingDayOverride_restaurantId_date_idx" ON "WorkingDayOverride"("restaurantId", "date");
@@ -264,13 +245,7 @@ ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("or
 ALTER TABLE "OrderAuditLog" ADD CONSTRAINT "OrderAuditLog_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "HolidayCalendarEntry" ADD CONSTRAINT "HolidayCalendarEntry_holidayTypeId_fkey" FOREIGN KEY ("holidayTypeId") REFERENCES "HolidayType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "RestaurantHolidayPolicy" ADD CONSTRAINT "RestaurantHolidayPolicy_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "RestaurantHolidayPolicy" ADD CONSTRAINT "RestaurantHolidayPolicy_holidayTypeId_fkey" FOREIGN KEY ("holidayTypeId") REFERENCES "HolidayType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WorkingDayOverride" ADD CONSTRAINT "WorkingDayOverride_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

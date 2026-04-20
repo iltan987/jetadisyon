@@ -16,16 +16,6 @@ enum OrderOutcome {
   CANCELLED_BY_PLATFORM
 }
 
-enum HolidayCategory {
-  FIXED_DATE
-  LUNAR
-}
-
-enum HolidayApprovalStatus {
-  AUTO_APPROVED
-  OPERATOR_OVERRIDDEN
-}
-
 enum HolidayPolicyEffect {
   CLOSED
   CUSTOM_HOURS
@@ -48,13 +38,13 @@ model Restaurant {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  weeklySchedule    WeeklyScheduleDay[]
-  platforms         RestaurantPlatform[]
-  orders            Order[]
-  dailySummaries    DailySummary[]
-  holidayPolicies   RestaurantHolidayPolicy[]
+  weeklySchedule      WeeklyScheduleDay[]
+  platforms           RestaurantPlatform[]
+  orders              Order[]
+  dailySummaries      DailySummary[]
+  holidayPolicies     RestaurantHolidayPolicy[]
   workingDayOverrides WorkingDayOverride[]
-  installationKey   InstallationKey?
+  installationKey     InstallationKey?
   platformCredentials PlatformCredential[]
 }
 
@@ -87,7 +77,7 @@ model RestaurantPlatform {
   platformId   String
   isActive     Boolean @default(true)
 
-  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant       @relation(fields: [restaurantId], references: [id])
   platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
 
   @@unique([restaurantId, platformId])
@@ -103,7 +93,7 @@ model PlatformCredential {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant       @relation(fields: [restaurantId], references: [id])
   platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
 
   @@unique([restaurantId, platformId])
@@ -131,7 +121,7 @@ model Order {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  restaurant Restaurant      @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant       @relation(fields: [restaurantId], references: [id])
   platform   DeliveryPlatform @relation(fields: [platformId], references: [id])
   items      OrderItem[]
   auditLogs  OrderAuditLog[]
@@ -163,41 +153,31 @@ model OrderAuditLog {
   order Order @relation(fields: [orderId], references: [id])
 }
 
-model HolidayType {
-  id       String          @id @default(cuid())
-  name     String          @unique
-  category HolidayCategory
-
-  calendarEntries  HolidayCalendarEntry[]
-  holidayPolicies  RestaurantHolidayPolicy[]
-}
+// HolidayType is not stored in DB — the static list lives in @repo/utils
+// (FIXED_HOLIDAYS and LUNAR_HOLIDAYS). holidayTypeName is the plain name string.
 
 model HolidayCalendarEntry {
-  id             String                @id @default(cuid())
-  holidayTypeId  String
-  year           Int
-  startDate      DateTime              @db.Date
-  endDate        DateTime              @db.Date
-  approvalStatus HolidayApprovalStatus @default(AUTO_APPROVED)
+  id              String                @id @default(cuid())
+  holidayTypeName String
+  year            Int
+  startDate       DateTime @db.Date
+  endDate         DateTime @db.Date
 
-  holidayType HolidayType @relation(fields: [holidayTypeId], references: [id])
-
-  @@unique([holidayTypeId, year])
+  @@unique([holidayTypeName, year])
   @@index([year])
 }
 
 model RestaurantHolidayPolicy {
-  id             String              @id @default(cuid())
-  restaurantId   String
-  holidayTypeId  String
-  effect         HolidayPolicyEffect
-  startTime      String?
-  endTime        String?
+  id              String              @id @default(cuid())
+  restaurantId    String
+  holidayTypeName String
+  effect          HolidayPolicyEffect
+  startTime       String?
+  endTime         String?
 
-  restaurant  Restaurant  @relation(fields: [restaurantId], references: [id])
-  holidayType HolidayType @relation(fields: [holidayTypeId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
-  @@unique([restaurantId, holidayTypeId])
+  @@unique([restaurantId, holidayTypeName])
 }
 
 model WorkingDayOverride {
