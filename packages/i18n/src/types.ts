@@ -15,6 +15,15 @@ export interface LocaleResources {
     required_field: string;
     invalid_format: string;
   };
+  queue: {
+    title: string;
+    empty: string;
+    accept: string;
+    expires_in: string;
+    platform: string;
+    total: string;
+    received_at: string;
+  };
 }
 
 declare module 'i18next' {

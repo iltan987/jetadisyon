@@ -70,21 +70,21 @@
 
 ### Rust: Local DB Commands
 
-- [ ] T019 [US1] Create Rust module `apps/desktop/src-tauri/src/local_db/mod.rs`: declare submodules `manual_review_queue`, `pending_order_sync`, `local_config`; re-export their Tauri command handlers
-- [ ] T020 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/manual_review_queue.rs`: Tauri commands `enqueue_order(db: State<DbPool>, payload: ManualReviewEntry) -> Result<()>`, `list_queue(db) -> Result<Vec<ManualReviewEntry>>`, `remove_from_queue(db, id: String) -> Result<()>`, `clear_expired(db) -> Result<Vec<String>>` (returns IDs of expired entries for timed-out recording)
-- [ ] T021 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/local_config.rs`: Tauri commands `set_config(db, key: String, value: String) -> Result<()>`, `get_config(db, key: String) -> Result<Option<String>>`; define `LocalConfigKey` enum (`Restaurant`, `Platforms`, `UpcomingOverrides`)
-- [ ] T022 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/pending_order_sync.rs`: Tauri commands `enqueue_sync(db, payload: String, outcome_status: String) -> Result<()>`, `list_pending(db) -> Result<Vec<PendingSyncEntry>>`, `remove_synced(db, id: String) -> Result<()>`, `increment_retry(db, id: String) -> Result<()>`
+- [x] T019 [US1] Create Rust module `apps/desktop/src-tauri/src/local_db/mod.rs`: declare submodules `manual_review_queue`, `pending_order_sync`, `local_config`; re-export their Tauri command handlers
+- [x] T020 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/manual_review_queue.rs`: Tauri commands `enqueue_order(db: State<DbPool>, payload: ManualReviewEntry) -> Result<()>`, `list_queue(db) -> Result<Vec<ManualReviewEntry>>`, `remove_from_queue(db, id: String) -> Result<()>`, `clear_expired(db) -> Result<Vec<String>>` (returns IDs of expired entries for timed-out recording)
+- [x] T021 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/local_config.rs`: Tauri commands `set_config(db, key: String, value: String) -> Result<()>`, `get_config(db, key: String) -> Result<Option<String>>`; define `LocalConfigKey` enum (`Restaurant`, `Platforms`, `UpcomingOverrides`)
+- [x] T022 [P] [US1] Implement `apps/desktop/src-tauri/src/local_db/pending_order_sync.rs`: Tauri commands `enqueue_sync(db, payload: String, outcome_status: String) -> Result<()>`, `list_pending(db) -> Result<Vec<PendingSyncEntry>>`, `remove_synced(db, id: String) -> Result<()>`, `increment_retry(db, id: String) -> Result<()>`
 
 ### Rust: Order Reception & Working Hours Enforcement
 
-- [ ] T023 [US1] Create `apps/desktop/src-tauri/src/platform_ws/order_handler.rs`: implement `should_auto_accept(local_config: &LocalConfigSnapshot) -> bool` — reads `UpcomingOverrides` from LocalConfig, finds today's effective schedule, returns `true` only if current time is within working hours; implement `handle_incoming_order(order: RawOrder, local_config: &LocalConfigSnapshot, db: &DbPool)` — calls `should_auto_accept`, routes to `enqueue_order` (ManualReviewQueue) or auto-accept path
-- [ ] T024 [US1] Create `apps/desktop/src-tauri/src/platform_ws/mod.rs`: declare platform WebSocket connection stub (one per enabled platform); on order arrival call `order_handler::handle_incoming_order`; on platform cancellation event: remove from ManualReviewQueue if present, enqueue cancellation outcome to PendingOrderSync
-- [ ] T025 [US1] Wire up timer expiry in `apps/desktop/src-tauri/src/platform_ws/mod.rs`: spawn a background Tokio task that runs every 10 seconds, calls `clear_expired` on ManualReviewQueue, and for each expired entry enqueues a `timed_out` outcome to PendingOrderSync
+- [x] T023 [US1] Create `apps/desktop/src-tauri/src/platform_ws/order_handler.rs`: implement `should_auto_accept(local_config: &LocalConfigSnapshot) -> bool` — reads `UpcomingOverrides` from LocalConfig, finds today's effective schedule, returns `true` only if current time is within working hours; implement `handle_incoming_order(order: RawOrder, local_config: &LocalConfigSnapshot, db: &DbPool)` — calls `should_auto_accept`, routes to `enqueue_order` (ManualReviewQueue) or auto-accept path
+- [x] T024 [US1] Create `apps/desktop/src-tauri/src/platform_ws/mod.rs`: declare platform WebSocket connection stub (one per enabled platform); on order arrival call `order_handler::handle_incoming_order`; on platform cancellation event: remove from ManualReviewQueue if present, enqueue cancellation outcome to PendingOrderSync
+- [x] T025 [US1] Wire up timer expiry in `apps/desktop/src-tauri/src/platform_ws/mod.rs`: spawn a background Tokio task that runs every 10 seconds, calls `clear_expired` on ManualReviewQueue, and for each expired entry enqueues a `timed_out` outcome to PendingOrderSync
 
 ### TypeScript: Desktop App Queue UI
 
-- [ ] T026 [P] [US1] Create `apps/desktop/src/hooks/useManualReviewQueue.ts`: call `invoke('list_queue')` on mount and on a 5-second interval; expose `queue: ManualReviewEntry[]`, `acceptOrder(id)`, `refreshQueue()`
-- [ ] T027 [US1] Create `apps/desktop/src/pages/queue/ManualReviewQueuePage.tsx`: render queue entries from `useManualReviewQueue`; show countdown timer per entry (derived from `expires_at - Date.now()`); Accept button calls `acceptOrder`; display empty state when queue is empty
+- [x] T026 [P] [US1] Create `apps/desktop/src/hooks/useManualReviewQueue.ts`: call `invoke('list_queue')` on mount and on a 5-second interval; expose `queue: ManualReviewEntry[]`, `acceptOrder(id)`, `refreshQueue()`
+- [x] T027 [US1] Create `apps/desktop/src/pages/queue/ManualReviewQueuePage.tsx`: render queue entries from `useManualReviewQueue`; show countdown timer per entry (derived from `expires_at - Date.now()`); Accept button calls `acceptOrder`; display empty state when queue is empty
 
 **Checkpoint**: ManualReviewQueue functional end-to-end. Orders held locally, countdown visible, survive restart. Working hours checked against cached config.
 
