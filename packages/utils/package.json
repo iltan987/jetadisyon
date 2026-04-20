@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "vitest run",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
     "clean": "rm -rf .turbo node_modules"
@@ -16,7 +17,8 @@
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.4"
   },
   "dependencies": {
     "@tabby_ai/hijri-converter": "^1.0.5"
